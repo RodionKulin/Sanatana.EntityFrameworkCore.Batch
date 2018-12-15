@@ -1,0 +1,7 @@
+language: csharp
+mono: none
+dotnet: 2.1.2
+solution: Sanatana.EntityFrameworkCore.sln
+script:
+  - dotnet pack Sanatana.EntityFrameworkCore/Sanatana.EntityFrameworkCore.csproj -o ../nuget -c Release -v n
+  - dotnet nuget push nuget/Sanatana.EntityFrameworkCore.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json

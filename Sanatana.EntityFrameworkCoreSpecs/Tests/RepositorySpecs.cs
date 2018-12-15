@@ -70,12 +70,12 @@ namespace Sanatana.EntityFrameworkCoreSpecs
            , INeedSampleDatabase
         {
             public SampleDbContext SampleDatabase { get; set; }
-            
+
             [Test]
             public void then_it_inserts_multiple_entities()
             {
                 int insertCount = 15;
-                var entities = new List<SampleEntity>();                
+                var entities = new List<SampleEntity>();
                 for (int i = 0; i < insertCount; i++)
                 {
                     entities.Add(new SampleEntity
@@ -93,7 +93,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 changes.ShouldEqual(insertCount);
             }
         }
-        
+
         [TestFixture]
         public class when_inserting_multiple_entities_with_output : SpecsFor<Repository>
            , INeedSampleDatabase
@@ -132,7 +132,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
         {
             private OneToManyEntity _parentEntity;
             public SampleDbContext SampleDatabase { get; set; }
-            
+
             protected override void Given()
             {
                 _parentEntity = new OneToManyEntity
@@ -167,7 +167,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 changes.ShouldEqual(entities.Count);
             }
         }
-        
+
         [TestFixture]
         public class when_inserting_complex_property : SpecsFor<Repository>
            , INeedSampleDatabase
@@ -206,7 +206,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 changes.ShouldEqual(entities.Count);
             }
         }
-        
+
         [TestFixture]
         public class when_deleting_many : SpecsFor<Repository>
            , INeedSampleDatabase
@@ -237,7 +237,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
             public void then_it_deletes_multiple_entities()
             {
                 int changes = SUT.DeleteMany<SampleEntity>(x => x.GuidProperty == _commonGuidValue);
-                
+
                 changes.ShouldEqual(_entitiesCount);
             }
         }
@@ -279,7 +279,7 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 changes.ShouldEqual(_entitiesCount);
             }
         }
-        
+
         [TestFixture]
         public class when_updating_many : SpecsFor<Repository>
            , INeedSampleDatabase
@@ -359,34 +359,55 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 select.TotalRows.ShouldEqual(_entitiesCount);
             }
         }
-        
+
         [TestFixture]
         public class when_merge_inserting_multiple_entities : SpecsFor<Repository>
            , INeedSampleDatabase
         {
+            private List<SampleEntity> _insertedItems;
+            private string _stringProp = "merge1";
+
             public SampleDbContext SampleDatabase { get; set; }
 
-            [Test]
-            public void then_it_merge_inserts_multiple_entities()
+
+            protected override void When()
             {
-                int insertCount = 15;
-                var entities = new List<SampleEntity>();
+                _insertedItems = new List<SampleEntity>();
                 for (int i = 0; i < 15; i++)
                 {
-                    entities.Add(new SampleEntity
+                    _insertedItems.Add(new SampleEntity
                     {
                         GuidNullableProperty = null,
-                        DateProperty = DateTime.UtcNow,
-                        GuidProperty = Guid.NewGuid()
+                        DateProperty = new DateTime(2000, 2, 2, 2, 2, i),
+                        GuidProperty = Guid.NewGuid(),
+                        StringProperty = _stringProp
                     });
                 }
 
-                MergeCommand<SampleEntity> command = SUT.MergeParameters<SampleEntity>(entities);
+                MergeCommand<SampleEntity> command = SUT.MergeParameters(_insertedItems);
                 command.Compare.IncludeProperty(x => x.Id);
                 command.Insert.ExcludeProperty(x => x.Id);
                 int changes = command.Execute(MergeType.Insert);
+                changes.ShouldEqual(_insertedItems.Count);
+            }
 
-                changes.ShouldEqual(insertCount);
+            [Test]
+            public void then_it_merge_inserted_entities_are_found()
+            {
+                List<SampleEntity> actualList = SampleDatabase.SampleEntities
+                    .Where(x => x.StringProperty == _stringProp)
+                    .OrderBy(x => x.Id)
+                    .ToList();
+
+                for (int i = 0; i < _insertedItems.Count; i++)
+                {
+                    SampleEntity expectedItem = _insertedItems[i];
+                    SampleEntity actualItem = actualList[i];
+
+                    expectedItem.Id = actualItem.Id;
+
+                    expectedItem.ShouldLookLike(actualItem);
+                }
             }
         }
 
@@ -420,6 +441,74 @@ namespace Sanatana.EntityFrameworkCoreSpecs
                 changes.ShouldEqual(insertCount);
                 entities.ForEach(
                     (entity) => entity.Id.ShouldNotEqual(0));
+            }
+        }
+
+
+        [TestFixture]
+        public class when_merge_updating_multiple_entities : SpecsFor<Repository>
+           , INeedSampleDatabase
+        {
+            private List<SampleEntity> _insertedItems;
+            private string _stringProp = "merge3";
+
+            public SampleDbContext SampleDatabase { get; set; }
+
+
+            protected override void Given()
+            {
+                _insertedItems = new List<SampleEntity>();
+                for (int i = 0; i < 15; i++)
+                {
+                    _insertedItems.Add(new SampleEntity
+                    {
+                        GuidNullableProperty = null,
+                        DateProperty = new DateTime(2000, 2, 2, 2, 2, i),
+                        GuidProperty = Guid.NewGuid(),
+                        StringProperty = _stringProp
+                    });
+                }
+
+                SampleDatabase.SampleEntities.AddRange(_insertedItems);
+                SampleDatabase.SaveChanges();
+            }
+
+            protected override void When()
+            {
+                for (int i = 0; i < 15; i++)
+                {
+                    _insertedItems[i].DateProperty = new DateTime(2005, 2, 2, 2, 2, i);
+                }
+
+                MergeCommand<SampleEntity> command = SUT.MergeParameters(_insertedItems);
+                command.Source
+                    .IncludeProperty(x => x.Id)
+                    .IncludeProperty(x => x.DateProperty);
+                command.Compare
+                    .IncludeProperty(x => x.Id);
+                command.Update
+                    .IncludeProperty(x => x.DateProperty);
+                int changes = command.Execute(MergeType.Update);
+                changes.ShouldEqual(_insertedItems.Count);
+            }
+
+            [Test]
+            public void then_it_merge_updated_entities_are_found()
+            {
+                List<SampleEntity> actualList = SampleDatabase.SampleEntities
+                    .Where(x => x.StringProperty == _stringProp)
+                    .OrderBy(x => x.Id)
+                    .ToList();
+
+                for (int i = 0; i < _insertedItems.Count; i++)
+                {
+                    SampleEntity expectedItem = _insertedItems[i];
+                    SampleEntity actualItem = actualList[i];
+
+                    expectedItem.Id = actualItem.Id;
+
+                    expectedItem.ShouldLookLike(actualItem);
+                }
             }
         }
 

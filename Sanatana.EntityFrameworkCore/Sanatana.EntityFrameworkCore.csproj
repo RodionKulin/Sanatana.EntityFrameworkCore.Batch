@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
+	<Version Condition=" '$(TRAVIS_BUILD_NUMBER)' == '' ">0.0.1-local</Version>
+    <Version Condition=" '$(TRAVIS_BUILD_NUMBER)' != '' ">1.0.$(TRAVIS_BUILD_NUMBER)</Version>
+    <Authors>Sanatana</Authors>
+	<RepositoryUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore</RepositoryUrl>
+	<PackageLicenseUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore/blob/master/LICENSE</PackageLicenseUrl>
+	<PackageDescription>Merge and batch Insert, Update, Delete operations for EntityFramework</PackageDescription>
+	<PackageTags>EntityFramework;EF;MSSQL;Merge;Batch</PackageTags>
   </PropertyGroup>
 
   <ItemGroup>

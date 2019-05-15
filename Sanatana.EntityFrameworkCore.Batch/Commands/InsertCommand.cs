@@ -60,6 +60,11 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         //methods
         public virtual int Execute(List<TEntity> entities)
         {
+            if (entities.Count == 0)
+            {
+                return 0;
+            }
+
             StringBuilder sqlBuilder = ContructInsertManyCommand();
             SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
             string command = sqlBuilder.ToString();
@@ -77,6 +82,11 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
 
         public virtual async Task<int> ExecuteAsync(List<TEntity> entities)
         {
+            if (entities.Count == 0)
+            {
+                return 0;
+            }
+
             StringBuilder sqlBuilder = ContructInsertManyCommand();
             SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
             string command = sqlBuilder.ToString();
@@ -243,22 +253,22 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
             List<MappedProperty> outputProperties = Output.GetSelectedFlat();
             int entityIndex = 0;
 
-            if (datareader.HasRows)
+            //will read all if any rows returned 
+            //will return false is no rows returned
+            //will throw exception message if exception produced by SQL
+            while (datareader.Read())
             {
-                while (datareader.Read())
-                {
-                    TEntity entity = entities[entityIndex];
-                    entityIndex++;
+                TEntity entity = entities[entityIndex];
+                entityIndex++;
 
-                    foreach (MappedProperty prop in outputProperties)
-                    {
-                        object value = datareader[prop.EfMappedName];
-                        Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
-                        value = value == null
-                            ? null 
-                            : Convert.ChangeType(value, propType);
-                        prop.PropertyInfo.SetValue(entity, value);
-                    }
+                foreach (MappedProperty prop in outputProperties)
+                {
+                    object value = datareader[prop.EfMappedName];
+                    Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
+                    value = value == null
+                        ? null
+                        : Convert.ChangeType(value, propType);
+                    prop.PropertyInfo.SetValue(entity, value);
                 }
             }
 

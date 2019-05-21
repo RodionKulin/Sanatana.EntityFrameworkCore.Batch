@@ -272,7 +272,6 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
                 }
             }
 
-            datareader.Close();
             return entityIndex;
         }
     }

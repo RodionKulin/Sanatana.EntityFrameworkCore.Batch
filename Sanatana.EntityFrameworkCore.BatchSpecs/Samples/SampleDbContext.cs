@@ -64,7 +64,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Samples
             modelBuilder.Entity<SampleEntity>().Property(x => x.DateProperty).HasColumnType("datetime2");
             modelBuilder.Entity<SampleEntity>().Property(x => x.IntProperty).HasColumnName(SAMPLE_ID_COLUMN_NAME);
             modelBuilder.Entity<SampleEntity>().ToTable(SAMPLE_TABLE_NAME, SAMPLE_TABLE_SCHEMA);
-                       
+
             modelBuilder.Entity<ParentEntity>().OwnsOne(s => s.Embedded, b =>
             {
                 b.Property(x => x.Address).HasColumnName(COMPLEX_TYPE_COLUMN_NAME);

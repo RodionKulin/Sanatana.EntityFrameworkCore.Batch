@@ -16,6 +16,7 @@ using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
 using Sanatana.EntityFrameworkCore.Batch;
 using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Storage;
+using System.Transactions;
 
 namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 {
@@ -188,65 +189,41 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 
         [TestFixture]
         public class when_merge_in_several_batched : SpecsFor<Repository>
-           , INeedSampleDatabase
+           , INeedSampleDatabase, INeedBatchesToInsert
         {
-            private List<SampleEntity> _insertedItems;
-            private string _testName;
             private int _changes;
 
+            public string MarkerStringProperty { get; set; }
+            public List<SampleEntity> InsertItems { get; set; }
             public SampleDbContext SampleDatabase { get; set; }
 
 
-            protected override void Given()
-            {
-                _testName = GetType().FullName;
-
-                _insertedItems = new List<SampleEntity>();
-                int propertiesCount = typeof(SampleEntity).GetProperties().Length;
-                int maxParameters = EntityFrameworkConstants.MAX_NUMBER_OF_SQL_COMMAND_PARAMETERS;
-                int entitiesCount = maxParameters / propertiesCount * 2;
-                for (int i = 0; i < entitiesCount; i++)
-                {
-                    _insertedItems.Add(new SampleEntity
-                    {
-                        GuidNullableProperty = null,
-                        DateProperty = new DateTime(2000, 2, 2, 2, 2, 0),
-                        GuidProperty = Guid.NewGuid(),
-                        StringProperty = _testName
-                    });
-                }
-
-            }
-
             protected override void When()
             {
-                MergeCommand<SampleEntity> command = SUT.Merge(_insertedItems);
+                MergeCommand<SampleEntity> command = SUT.Merge(InsertItems);
                 command.Compare.IncludeProperty(x => x.Id);
                 _changes = command.Execute(MergeType.Insert);
-
-                //Assert
-                
             }
 
             [Test]
             public void then_number_of_changes_equals_inserted_items_count()
             {
-                _changes.ShouldEqual(_insertedItems.Count);
+                _changes.ShouldEqual(InsertItems.Count);
             }
 
             [Test]
             public void then_merge_inserted_entities_in_several_batches_are_found()
             {
                 List<SampleEntity> actualList = SampleDatabase.SampleEntities
-                    .Where(x => x.StringProperty == _testName)
+                    .Where(x => x.StringProperty == MarkerStringProperty)
                     .OrderBy(x => x.Id)
                     .ToList();
 
-                for (int i = 0; i < _insertedItems.Count; i++)
+                for (int i = 0; i < InsertItems.Count; i++)
                 {
                     SampleEntity actualItem = actualList[i];
 
-                    SampleEntity expectedItem = _insertedItems[i];
+                    SampleEntity expectedItem = InsertItems[i];
                     expectedItem.Id = actualItem.Id;
 
                     expectedItem.ShouldLookLike(actualItem);
@@ -526,44 +503,21 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                 actualList.Count.ShouldEqual(0);
             }
         }
-
-
+        
         [TestFixture]
-        public class when_merge_batches_without_output_uses_internal_commited_transaction : SpecsFor<Repository>
-            , INeedSampleDatabase
+        public class when_merge_batches_without_output_uses_internal_commited_transaction : 
+            SpecsFor<Repository>, INeedSampleDatabase, INeedBatchesToInsert
         {
-            private List<SampleEntity> _insertedItems;
-            private string _testName;
             private int _changes;
 
+            public string MarkerStringProperty { get; set; }
+            public List<SampleEntity> InsertItems { get; set; }
             public SampleDbContext SampleDatabase { get; set; }
 
-            protected override void Given()
-            {
-                _testName = GetType().FullName;
-
-                int paramsPerEntity = typeof(SampleEntity).GetProperties().Length;
-                int maxParameters = EntityFrameworkConstants.MAX_NUMBER_OF_SQL_COMMAND_PARAMETERS;
-                int entitiesInBatch = maxParameters / paramsPerEntity;
-                int entitiesCount = entitiesInBatch * 3;
-
-                _insertedItems = new List<SampleEntity>();
-
-                for (int i = 0; i < entitiesCount; i++)
-                {
-                    _insertedItems.Add(new SampleEntity
-                    {
-                        GuidNullableProperty = null,
-                        DateProperty = new DateTime(2000, 2, 2, 2, 2, 0),
-                        GuidProperty = Guid.NewGuid(),
-                        StringProperty = _testName
-                    });
-                }
-            }
 
             protected override void When()
             {
-                MergeCommand<SampleEntity> command = SUT.Merge(_insertedItems);
+                MergeCommand<SampleEntity> command = SUT.Merge(InsertItems);
                 command.Compare.IncludeProperty(x => x.Id);
                 command.Output
                     .SetExcludeAllByDefault(true)
@@ -575,17 +529,17 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
             public void then_inserted_entities_in_transaction_are_saved()
             {
                 List<SampleEntity> actualList = SampleDatabase.SampleEntities
-                    .Where(x => x.StringProperty == _testName)
+                    .Where(x => x.StringProperty == MarkerStringProperty)
                     .OrderBy(x => x.Id)
                     .ToList();
 
-                actualList.Count.ShouldEqual(_insertedItems.Count);
+                actualList.Count.ShouldEqual(InsertItems.Count);
 
-                for (int i = 0; i < _insertedItems.Count; i++)
+                for (int i = 0; i < InsertItems.Count; i++)
                 {
                     SampleEntity actualItem = actualList[i];
 
-                    SampleEntity expectedItem = _insertedItems[i];
+                    SampleEntity expectedItem = InsertItems[i];
                     expectedItem.Id = actualItem.Id;
 
                     expectedItem.ShouldLookLike(actualItem);
@@ -593,5 +547,58 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
             }
         }
 
+        [TestFixture]
+        public class when_merge_batches_uses_ambient_transaction : SpecsFor<Repository>
+            , INeedSampleDatabase, INeedBatchesToInsert
+        {
+            private int _changes1;
+            private int _changes2;
+
+            public string MarkerStringProperty { get; set; }
+            public List<SampleEntity> InsertItems { get; set; }
+            public SampleDbContext SampleDatabase { get; set; }
+
+            protected override void When()
+            {
+                using (var scope = new TransactionScope())
+                {
+                    MergeCommand<SampleEntity> command1 = SUT.Merge(InsertItems);
+                    command1.UseInnerTransactionForBatches = false;
+                    _changes1 = command1.Execute(MergeType.Insert);
+
+                    MergeCommand<SampleEntity> command2 = SUT.Merge(InsertItems);
+                    command2.UseInnerTransactionForBatches = false;
+                    _changes2 = command2.Execute(MergeType.Insert);
+
+                    scope.Complete();
+
+                }
+            }
+
+            [Test]
+            public void then_inserted_entities_in_transaction_are_saved()
+            {
+                List<SampleEntity> actualList = SampleDatabase.SampleEntities
+                    .Where(x => x.StringProperty == MarkerStringProperty)
+                    .OrderBy(x => x.Id)
+                    .ToList();
+
+                var expectedList = new List<SampleEntity>();
+                expectedList.AddRange(InsertItems);
+                expectedList.AddRange(InsertItems);
+
+                actualList.Count.ShouldEqual(expectedList.Count);
+
+                for (int i = 0; i < expectedList.Count; i++)
+                {
+                    SampleEntity actualItem = actualList[i];
+                    SampleEntity expectedItem = expectedList[i];
+                    expectedItem.Id = actualItem.Id;
+
+                    expectedItem.ShouldLookLike(actualItem);
+                }
+            }
+
+        }
     }
 }

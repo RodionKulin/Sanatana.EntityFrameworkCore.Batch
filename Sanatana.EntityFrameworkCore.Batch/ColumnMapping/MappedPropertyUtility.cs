@@ -79,11 +79,8 @@ namespace Sanatana.EntityFrameworkCore.Batch.ColumnMapping
             }
             else
             {
-                IEnumerable<IEntityType> allEfEntities = _context.Model.GetEntityTypes();
                 string propertyName = parentPropertyNames[0];
-                efEntityType = allEfEntities.FirstOrDefault(
-                    x => x.DefiningEntityType == _efRootEntityType
-                    && x.DefiningNavigationName == propertyName);                
+                efEntityType = _context.GetOwnedProperty(_efRootEntityType, propertyName);
             }
 
             List<string> efMappedProperties = efEntityType.GetProperties()
@@ -135,11 +132,11 @@ namespace Sanatana.EntityFrameworkCore.Batch.ColumnMapping
             
             //Exclude ignored properties
             List<string> mappedComplexTypes = _context.Model.GetEntityTypes()
-                .Where(x => x.DefiningEntityType == _efRootEntityType)
-                .Select(x => x.DefiningNavigationName)
+                .Where(x => x.IsOwned())
+                .Select(x => x.Name)
                 .ToList();
             complexProperties = complexProperties
-                .Where(x => mappedComplexTypes.Contains(x.Name))
+                .Where(x => mappedComplexTypes.Contains(x.PropertyType.FullName))
                 .ToList();
 
             //Return all the rest complex properties

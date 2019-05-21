@@ -49,6 +49,14 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
         /// </summary>
         public string TableName { get; set; }
         /// <summary>
+        /// Enable transaction usage when there is more then a single merge request.
+        /// Merge requests get splitted into batches when max number of SqlParameters per query is reached. 
+        /// Each property of an entity is passed as SqlParameter if not using TVP.
+        /// You might want to prevent Merge from creating transaction if using ambient transaction from your code.
+        /// Enabled by default.
+        /// </summary>
+        public bool UseInnerTransactionForBatches { get; set; } = true;
+        /// <summary>
         /// List of columns to include as parameters to the query from provided Source entities.        /// 
         /// All properties are included by default.
         /// </summary>
@@ -189,13 +197,15 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             }
 
             List<TEntity>[] entityBatches = GetEntityBatches(_entityList);
-            if(_transaction != null)
+            if(_transaction != null
+                || UseInnerTransactionForBatches == false)
             {
                 return ReadOutput(entityBatches, _transaction);
             }
 
             int res = 0;
-            using (IDbContextTransaction batchTransaction =
+
+            using (IDbContextTransaction batchTransaction = 
                 _context.Database.BeginTransaction())
             {
                 SqlTransaction sqlTransaction = (SqlTransaction)batchTransaction.GetDbTransaction();
@@ -204,7 +214,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             }
             return res;
         }
-
+        
         public virtual async Task<int> ExecuteAsync(MergeType mergeType)
         {
             _mergeType = mergeType;
@@ -214,14 +224,15 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             }
 
             List<TEntity>[] entityBatches = GetEntityBatches(_entityList);
-            if (_transaction != null)
+            if (_transaction != null
+                || UseInnerTransactionForBatches == false)
             {
                 return await ReadOutputAsync(entityBatches, _transaction)
                     .ConfigureAwait(false);
             }
 
             int res = 0;
-            using (IDbContextTransaction batchTransaction = 
+            using (IDbContextTransaction batchTransaction =
                 await _context.Database.BeginTransactionAsync().ConfigureAwait(false))
             {
                 SqlTransaction sqlTransaction = (SqlTransaction)batchTransaction.GetDbTransaction();
@@ -659,7 +670,6 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
                 }
             }
 
-            datareader.Close();
             return changes;
         }
     }

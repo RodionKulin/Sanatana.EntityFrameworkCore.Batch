@@ -16,5 +16,6 @@ public class ServicesTestConfig : SpecsForConfiguration
         WhenTesting<INeedSampleDatabase>().EnrichWith<SampleDbCreator>();
         WhenTesting<INeedSampleDatabase>().EnrichWith<SampleDbContextProvider>();
         WhenTesting<INeedSampleDatabase>().EnrichWith<DataPurger>();
+        WhenTesting<INeedBatchesToInsert>().EnrichWith<BatchesToInsertProvider>();
     }
 }

@@ -139,7 +139,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
         {
             string entityName = TypeExtensions.DisplayName(rootEntityType);
             IEntityType rootEntity = context.Model.FindEntityType(entityName);
-            //ISqlServerEntityTypeAnnotations sql = rootEntity.SqlServer();
+
             if (rootEntity == null)
             {
                 throw new KeyNotFoundException($"Entity {rootEntityType.FullName} is not found in EntityFramework configuration.");
@@ -156,9 +156,8 @@ namespace Sanatana.EntityFrameworkCore.Batch
             {
                 string rootEntityNavigationProperty = propertyNamePath[0];
                 string ownedEntityProperty = propertyNamePath[1];
-                IEntityType ownedEntity = context.Model.GetEntityTypes()
-                   .FirstOrDefault(x => x.DefiningEntityType == rootEntity
-                   && x.DefiningNavigationName == rootEntityNavigationProperty);
+
+                IEntityType ownedEntity = GetOwnedProperty(context, rootEntity, rootEntityNavigationProperty);
                 property = ownedEntity.FindProperty(ownedEntityProperty);
             }
             else
@@ -173,6 +172,20 @@ namespace Sanatana.EntityFrameworkCore.Batch
             }
 
             return property;
+        }
+
+        public static IEntityType GetOwnedProperty(this DbContext context, 
+            IEntityType rootEntity, string navigationProperty)
+        {
+            INavigation navigationProp = rootEntity
+                .FindNavigation(navigationProperty);
+
+            IEntityType ownedEntity = context.Model.GetEntityTypes()
+                .FirstOrDefault(
+                    x => x.ClrType == navigationProp.ClrType
+                    && x.IsOwned());
+
+            return ownedEntity;
         }
 
 

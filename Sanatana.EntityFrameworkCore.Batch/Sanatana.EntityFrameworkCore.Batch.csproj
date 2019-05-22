@@ -10,10 +10,16 @@
 	  <PackageDescription>Merge and batch Insert, Update, Delete operations for EntityFrameworkCore</PackageDescription>
 	  <PackageTags>EntityFramework;EntityFrameworkCore;EF;MSSQL;Merge;Batch</PackageTags>
     <PackageReleaseNotes>Split request into batches when limit of SQL parameters is reached</PackageReleaseNotes>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DocumentationFile>D:\dev\Собственное\Библиотеки\Sanatana.EntityFrameworkCore\Sanatana.EntityFrameworkCore\Sanatana.EntityFrameworkCore.xml</DocumentationFile>
+    <CodeAnalysisRuleSet>Sanatana.EntityFrameworkCore.Batch.ruleset</CodeAnalysisRuleSet>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
+    <CodeAnalysisRuleSet>Sanatana.EntityFrameworkCore.Batch.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
 
   <ItemGroup>

@@ -8,15 +8,16 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Should;
-using SpecsFor.ShouldExtensions;
+using SpecsFor.StructureMap;
 using Sanatana.EntityFrameworkCore.Batch.Commands.Merge;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples.Entities;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;
 using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
 using Sanatana.EntityFrameworkCore.Batch;
-using System.Data.SqlClient;
 using Microsoft.EntityFrameworkCore.Storage;
 using System.Transactions;
+using FluentAssertions;
+using Microsoft.Data.SqlClient;
 
 namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 {
@@ -76,7 +77,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    actualItem.Should().BeEquivalentTo(expectedItem);
                 }
             }
         }
@@ -182,7 +183,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
         }
@@ -226,7 +227,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                     SampleEntity expectedItem = InsertItems[i];
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
         }
@@ -301,7 +302,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                     SampleEntity expectedItem = _insertedItems[i];
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
         }
@@ -436,7 +437,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                     SampleEntity expectedItem = _insertedItems[i];
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
         }
@@ -542,7 +543,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                     SampleEntity expectedItem = InsertItems[i];
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
         }
@@ -595,7 +596,7 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
                     SampleEntity expectedItem = expectedList[i];
                     expectedItem.Id = actualItem.Id;
 
-                    expectedItem.ShouldLookLike(actualItem);
+                    expectedItem.Should().BeEquivalentTo(actualItem);
                 }
             }
 

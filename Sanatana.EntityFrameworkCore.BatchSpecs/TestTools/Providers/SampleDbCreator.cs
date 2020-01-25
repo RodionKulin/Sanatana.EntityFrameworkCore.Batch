@@ -1,8 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Moq;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;
 using Sanatana.EntityFrameworkCore.BatchSpecs.TestTools.Interfaces;
-using SpecsFor.Configuration;
+using SpecsFor.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -26,12 +27,10 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.TestTools.Providers
             {
                 return;
             }
-            
-            using (SampleDbContext context = new SampleDbContext())
-            {
-                context.Database.EnsureDeleted();
-                context.Database.EnsureCreated();
-            }
+
+            instance.SampleDatabase.Database.EnsureDeleted();
+            instance.SampleDatabase.Database.EnsureCreated();
+          
 
             _isInitialized = true;
         }

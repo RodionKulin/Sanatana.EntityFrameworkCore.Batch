@@ -13,6 +13,7 @@ using LinqKit;
 using Microsoft.EntityFrameworkCore;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples.Entities;
+using SpecsFor.StructureMap;
 
 namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 {

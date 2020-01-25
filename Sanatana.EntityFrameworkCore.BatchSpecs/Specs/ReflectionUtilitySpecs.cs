@@ -11,6 +11,7 @@ using Sanatana.EntityFrameworkCore.Batch.Reflection;
 using Should;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples.Entities;
+using SpecsFor.StructureMap;
 
 namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 {

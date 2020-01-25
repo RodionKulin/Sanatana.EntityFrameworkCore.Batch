@@ -1,5 +1,6 @@
 ﻿using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;
 using SpecsFor;
+using SpecsFor.Core;
 using System;
 using System.Collections.Generic;
 using System.Linq;

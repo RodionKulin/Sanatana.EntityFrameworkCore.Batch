@@ -8,7 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Should;
-using SpecsFor.ShouldExtensions;
+using SpecsFor.StructureMap;
 using Sanatana.EntityFrameworkCore.Batch.Commands.Merge;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples.Entities;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples;

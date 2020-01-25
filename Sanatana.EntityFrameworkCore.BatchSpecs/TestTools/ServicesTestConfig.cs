@@ -1,7 +1,7 @@
 ﻿using Sanatana.EntityFrameworkCore.BatchSpecs.TestTools.Interfaces;
 using Sanatana.EntityFrameworkCore.BatchSpecs.TestTools.Providers;
 using NUnit.Framework;
-using SpecsFor.Configuration;
+using SpecsFor.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +13,8 @@ public class ServicesTestConfig : SpecsForConfiguration
 {
     public ServicesTestConfig()
     {
-        WhenTesting<INeedSampleDatabase>().EnrichWith<SampleDbCreator>();
         WhenTesting<INeedSampleDatabase>().EnrichWith<SampleDbContextProvider>();
+        WhenTesting<INeedSampleDatabase>().EnrichWith<SampleDbCreator>();
         WhenTesting<INeedSampleDatabase>().EnrichWith<DataPurger>();
         WhenTesting<INeedBatchesToInsert>().EnrichWith<BatchesToInsertProvider>();
     }

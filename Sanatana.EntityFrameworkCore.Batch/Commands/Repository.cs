@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -11,6 +10,7 @@ using Sanatana.EntityFrameworkCore.Batch.Commands.Merge;
 using System.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.Data.SqlClient;
 
 namespace Sanatana.EntityFrameworkCore.Batch.Commands
 {
@@ -127,8 +127,8 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
             where TEntity : class
         {
             int skip = pageIsZeroBased
-                ? SqlUtility.ToSkipNumberZeroBased(page, pageSize)
-                : SqlUtility.ToSkipNumberOneBased(page, pageSize);
+                ? SqlDataFomatting.ToSkipNumberZeroBased(page, pageSize)
+                : SqlDataFomatting.ToSkipNumberOneBased(page, pageSize);
 
             IQueryable<TEntity> query = Context.Set<TEntity>().AsQueryable();
             if (whereExpression != null)

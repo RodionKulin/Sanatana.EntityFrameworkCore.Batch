@@ -8,6 +8,7 @@ using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore.Internal;
+using Microsoft.EntityFrameworkCore;
 
 namespace Sanatana.EntityFrameworkCore.Batch.ColumnMapping
 {
@@ -102,8 +103,8 @@ namespace Sanatana.EntityFrameworkCore.Batch.ColumnMapping
                 {
                     PropertyInfo = supportedProp,
                     EfDefaultName = efDefaultName,
-                    EfMappedName = property.Relational().ColumnName,
-                    ConfiguredSqlType = property.GetConfiguredColumnType()
+                    EfMappedName = property.GetColumnName(),
+                    ConfiguredSqlType = property.GetColumnType()
                 });
             }
 

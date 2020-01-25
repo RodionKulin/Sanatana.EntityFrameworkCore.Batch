@@ -1,8 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
-using Microsoft.EntityFrameworkCore.Extensions.Internal;
-using Microsoft.EntityFrameworkCore.Extensions;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
 using Sanatana.EntityFrameworkCore.Batch.Reflection;
 using System;
@@ -35,14 +33,15 @@ namespace Sanatana.EntityFrameworkCore.Batch
                 throw new KeyNotFoundException($"Entity type {entityName} is not found in DbContext configuration.");
             }
 
-            IRelationalEntityTypeAnnotations mapping = rootEntityType.Relational();
-            if(string.IsNullOrEmpty(mapping.Schema))
+            string schema = rootEntityType.GetSchema();
+            string tableName = rootEntityType.GetTableName();
+            if (string.IsNullOrEmpty(schema))
             {
-                return $"[{mapping.TableName}]";
+                return $"[{tableName}]";
             }
             else
             {
-                return $"[{mapping.Schema}].[{mapping.TableName}]";
+                return $"[{schema}].[{tableName}]";
             }
         }
 
@@ -87,8 +86,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
         public static string GetColumnName(this DbContext context, Type rootEntityType, string propertyName)
         {
             IProperty property = GetPropertyMapping(context, rootEntityType, propertyName);
-            IRelationalPropertyAnnotations propertyAnnotations = property.Relational();
-            return propertyAnnotations.ColumnName;
+            return property.GetColumnName();
         }
 
         /// <summary>
@@ -118,11 +116,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
             List<string> keyNames = rootEntity.GetProperties()
                 .Where(x => x.ValueGenerated == ValueGenerated.OnAdd
                     || x.ValueGenerated == ValueGenerated.OnAddOrUpdate)
-                .Select(property =>
-                {
-                    IRelationalPropertyAnnotations propertyAnnotations = property.Relational();
-                    return propertyAnnotations.ColumnName;
-                })
+                .Select(property => property.GetColumnName())
                 .ToList();
 
             return keyNames;

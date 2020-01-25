@@ -9,11 +9,11 @@ using Sanatana.EntityFrameworkCore.Batch;
 using Sanatana.EntityFrameworkCore.Batch.Expressions;
 using Sanatana.EntityFrameworkCore.Batch.Reflection;
 using System.Data;
-using System.Data.SqlClient;
 using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
 using Sanatana.EntityFrameworkCore.Batch.Commands;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
+using Microsoft.Data.SqlClient;
 
 namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
 {

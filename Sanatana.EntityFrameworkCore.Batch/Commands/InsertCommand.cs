@@ -1,9 +1,9 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.Data.SqlClient;
+using Microsoft.EntityFrameworkCore;
 using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -152,7 +152,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
                         var sqlParameter = new SqlParameter(paramName, entityProperties[p].Value);
                         if(entityProperties[p].ConfiguredSqlType != null)
                         {
-                            sqlParameter.SqlDbType = (SqlDbType)Enum.Parse(typeof(SqlDbType), entityProperties[p].ConfiguredSqlType, true);
+                            sqlParameter.SqlDbType = entityProperties[p].GetSqlDbType();
                         }
                         sqlParams.Add(sqlParameter);
                     }

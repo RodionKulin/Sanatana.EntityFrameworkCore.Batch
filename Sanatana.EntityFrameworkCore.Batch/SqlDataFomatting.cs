@@ -7,93 +7,93 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFrameworkCore.Batch
 {
-    public static class SqlUtility
+    public static class SqlDataFomatting
     {
         /// <summary>
-        /// Get range numbers for SQL rows numbering, where input Page number is expected to start from 0.
+        /// Get range numbers for SQL rows numbering, where input pageIndex is expected to start from 0.
         /// </summary>
-        /// <param name="page"></param>
+        /// <param name="pageIndex">0-based page index</param>
         /// <param name="pageSize"></param>
         /// <param name="numberStart"></param>
         /// <param name="numberEnd"></param>
-        public static void SqlRowNumberZeroBased(int page, int pageSize, out int numberStart, out int numberEnd)
+        public static void SqlRowNumberZeroBased(int pageIndex, int pageSize, out int numberStart, out int numberEnd)
         {
             if (pageSize < 1)
             {
                 throw new Exception("Number of items per page must be greater then 0.");
             }
 
-            if (page < 0)
+            if (pageIndex < 0)
             {
-                page = 0;
+                pageIndex = 0;
             }
-            numberStart = page * pageSize + 1;
+            numberStart = pageIndex * pageSize + 1;
             numberEnd = numberStart + pageSize - 1;
         }
 
         /// <summary>
-        /// Get number of rows to skip, where input Page number is expected to start from 0.
+        /// Get number of rows to skip, where input pageIndex is expected to start from 0.
         /// </summary>
-        /// <param name="page"></param>
+        /// <param name="pageIndex">0-based page index</param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        public static int ToSkipNumberZeroBased(int page, int pageSize)
+        public static int ToSkipNumberZeroBased(int pageIndex, int pageSize)
         {
             if (pageSize < 1)
             {
                 throw new Exception("Number of items per page must be greater then 0.");
             }
 
-            if (page < 0)
+            if (pageIndex < 0)
             {
-                page = 0;
+                pageIndex = 0;
             }
 
-            int skip = page * pageSize;
+            int skip = pageIndex * pageSize;
             return skip;
         }
 
         /// <summary>
-        /// Get range numbers for SQL rows numbering, where input Page number is expected to start from 1.
+        /// Get range numbers for SQL rows numbering, where input pageNumber is expected to start from 1.
         /// </summary>
-        /// <param name="page"></param>
+        /// <param name="pageNumber">1-based page number</param>
         /// <param name="pageSize"></param>
         /// <param name="numberStart"></param>
         /// <param name="numberEnd"></param>
-        public static void SqlRowNumberOneBased(int page, int pageSize, out int numberStart, out int numberEnd)
+        public static void SqlRowNumberOneBased(int pageNumber, int pageSize, out int numberStart, out int numberEnd)
         {
             if (pageSize < 1)
             {
                 throw new Exception("Number of items per page must be greater then 0.");
             }
 
-            if (page < 1)
+            if (pageNumber < 1)
             {
-                page = 1;
+                pageNumber = 1;
             }
-            numberStart = (page - 1) * pageSize + 1;
+            numberStart = (pageNumber - 1) * pageSize + 1;
             numberEnd = numberStart + pageSize - 1;
         }
 
         /// <summary>
-        /// Get number of rows to skip, where input Page number is expected to start from 1.
+        /// Get number of rows to skip, where input pageNumber is expected to start from 1.
         /// </summary>
-        /// <param name="page"></param>
+        /// <param name="pageNumber">1-based page number</param>
         /// <param name="pageSize"></param>
         /// <returns></returns>
-        public static int ToSkipNumberOneBased(int page, int pageSize)
+        public static int ToSkipNumberOneBased(int pageNumber, int pageSize)
         {
             if (pageSize < 1)
             {
                 throw new Exception("Number of items per page must be greater then 0.");
             }
 
-            if (page < 1)
+            if (pageNumber < 1)
             {
-                page = 1;
+                pageNumber = 1;
             }
 
-            int skip = (page - 1) * pageSize;
+            int skip = (pageNumber - 1) * pageSize;
             return skip;
         }
 

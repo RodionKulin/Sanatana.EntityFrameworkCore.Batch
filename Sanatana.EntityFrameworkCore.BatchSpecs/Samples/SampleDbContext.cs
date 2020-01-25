@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Sanatana.EntityFrameworkCore.BatchSpecs.Samples.Entities;
 using System;
 using System.Collections.Generic;
@@ -38,8 +39,9 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Samples
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = ConfigurationManager.ConnectionStrings["SampleDbContext"].ConnectionString;
-            
+            IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            string connectionString = config.GetConnectionString("DefaultConnection");
+
             optionsBuilder
                 .UseSqlServer(connectionString, providerOptions => providerOptions.CommandTimeout(30))
                 .UseQueryTrackingBehavior(QueryTrackingBehavior.NoTracking);

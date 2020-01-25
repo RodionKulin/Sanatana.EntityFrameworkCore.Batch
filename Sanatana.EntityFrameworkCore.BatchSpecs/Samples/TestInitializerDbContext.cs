@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Configuration;
@@ -17,7 +18,8 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Samples
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            string connectionString = ConfigurationManager.ConnectionStrings["TestInitializerDbContext"].ConnectionString;
+            IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
+            string connectionString = config.GetConnectionString("TestInitializerDbContext");
 
             optionsBuilder
                 .UseSqlServer(connectionString, providerOptions => providerOptions.CommandTimeout(30))

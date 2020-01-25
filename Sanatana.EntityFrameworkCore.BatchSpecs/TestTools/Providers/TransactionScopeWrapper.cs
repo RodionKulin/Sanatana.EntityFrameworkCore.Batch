@@ -1,5 +1,5 @@
 ﻿using Sanatana.EntityFrameworkCore.BatchSpecs.TestTools.Interfaces;
-using SpecsFor.Configuration;
+using SpecsFor.Core.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;

@@ -11,6 +11,7 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Transactions;
 using Should;
+using SpecsFor.StructureMap;
 
 namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
 {

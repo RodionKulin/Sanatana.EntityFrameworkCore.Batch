@@ -5,7 +5,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -19,14 +19,14 @@ namespace Sanatana.EntityFrameworkCore.Batch.Scripts
             string script = GenerateCreateScript(context.Database);
             
             bool connectionOpened = false;
-            SqlConnection connection = (SqlConnection)context.Database.GetDbConnection();
+            DbConnection connection = context.Database.GetDbConnection();
             if (connection.State != System.Data.ConnectionState.Open)
             {
                 connection.Open();
                 connectionOpened = true;
             }
                         
-            context.Database.ExecuteSqlCommand(script);
+            context.Database.ExecuteSqlRaw(script);
             
             if (connectionOpened)
             {

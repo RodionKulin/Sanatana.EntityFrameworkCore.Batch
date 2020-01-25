@@ -203,7 +203,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Scripts
                     {
                         if (!existingNames.Contains(script.SqlObjectName))
                         {
-                            dbContext.Database.ExecuteSqlCommand(script.ScriptText);
+                            dbContext.Database.ExecuteSqlRaw(script.ScriptText);
                         }
                     }
                     catch (Exception exception)
@@ -226,7 +226,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Scripts
                 {
                     try
                     {
-                        dbContext.Database.ExecuteSqlCommand(script.ScriptText);
+                        dbContext.Database.ExecuteSqlRaw(script.ScriptText);
                     }
                     catch (Exception exception)
                     {

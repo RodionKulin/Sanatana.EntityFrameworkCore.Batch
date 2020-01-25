@@ -27,7 +27,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         public virtual int Execute(Expression<Func<TEntity, bool>> matchExpression)
         {
             string command = ContructDeleteCommand(matchExpression);
-            int changes = _context.Database.ExecuteSqlCommand(command);
+            int changes = _context.Database.ExecuteSqlRaw(command);
 
             return changes;
         }
@@ -35,7 +35,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         public virtual async Task<int> ExecuteAsync(Expression<Func<TEntity, bool>> matchExpression)
         {
             string command = ContructDeleteCommand(matchExpression);
-            int changes = await _context.Database.ExecuteSqlCommandAsync(command).ConfigureAwait(false);
+            int changes = await _context.Database.ExecuteSqlRawAsync(command).ConfigureAwait(false);
 
             return changes;
         }

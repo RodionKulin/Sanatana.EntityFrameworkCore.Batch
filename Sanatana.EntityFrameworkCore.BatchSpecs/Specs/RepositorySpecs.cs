@@ -349,11 +349,11 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
             {
                 int pageSize = 10;
 
-                RepositoryResult<SampleEntity> select = SUT.SelectPage<SampleEntity, DateTime?>(
-                    1, pageSize, true
+                RepositoryResult<SampleEntity> select = SUT.FindPage<SampleEntity, DateTime?>(
+                    0, pageSize, true
                     , x => x.GuidProperty == _commonGuidValue
                     , x => x.DateProperty
-                    , true, false);
+                    , true);
 
                 select.Data.Count.ShouldEqual(pageSize);
                 select.TotalRows.ShouldEqual(_entitiesCount);

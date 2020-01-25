@@ -7,12 +7,11 @@
     <Authors>Sanatana</Authors>
 	  <RepositoryUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore.Batch</RepositoryUrl>
 	  <PackageLicenseUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore.Batch/blob/master/LICENSE</PackageLicenseUrl>
-	  <PackageDescription>Merge and batch Insert, Update, Delete operations for EntityFrameworkCore</PackageDescription>
-	  <PackageTags>EntityFramework;EntityFrameworkCore;EF;MSSQL;Merge;Batch</PackageTags>
-    <PackageReleaseNotes>Update to EntityFrameworkCore 3.1.1</PackageReleaseNotes>
+	  <PackageDescription>EntityFrameworkCore merge, batch insert, update, delete requests for SqlServer</PackageDescription>
+	  <PackageTags>EntityFramework;EntityFrameworkCore;EF;MSSQL;Merge;Batch;Repository</PackageTags>
+    <PackageReleaseNotes></PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
-    <Description>EntityFrameworkCore batch merge, insert, update, delete requests for SqlServer</Description>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -25,7 +24,6 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="3.1.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.0" />
   </ItemGroup>
 
 </Project>

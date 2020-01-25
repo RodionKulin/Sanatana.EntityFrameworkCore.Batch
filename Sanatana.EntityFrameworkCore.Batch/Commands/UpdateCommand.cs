@@ -50,7 +50,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         public virtual int Execute()
         {
             string command = ContructUpdateManyCommand();
-            int changes = _context.Database.ExecuteSqlCommand(command);
+            int changes = _context.Database.ExecuteSqlRaw(command);
 
             return changes;
         }
@@ -58,7 +58,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         public virtual async Task<int> ExecuteAsync()
         {
             string command = ContructUpdateManyCommand();
-            int changes = await _context.Database.ExecuteSqlCommandAsync(command)
+            int changes = await _context.Database.ExecuteSqlRawAsync(command)
                 .ConfigureAwait(false);
 
             return changes;

@@ -39,23 +39,22 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TOrder"></typeparam>
-        /// <param name="page"></param>
+        /// <param name="pageIndex">0-based page index</param>
         /// <param name="pageSize"></param>
         /// <param name="descending"></param>
         /// <param name="whereExpression"></param>
         /// <param name="orderExpression"></param>
         /// <param name="countTotal"></param>
-        /// <param name="pageIsZeroBased"></param>
         /// <returns>If page number starts from 0, otherwise from 1.</returns>
-        public virtual RepositoryResult<TEntity> SelectPage<TEntity, TOrder>(int page, int pageSize, bool descending
+        public virtual RepositoryResult<TEntity> FindPage<TEntity, TOrder>(int pageIndex, int pageSize, bool descending
             , Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, TOrder>> orderExpression
-            , bool countTotal, bool pageIsZeroBased)
+            , bool countTotal)
             where TEntity : class
         {
             var result = new RepositoryResult<TEntity>();
 
-            result.Data = SelectPageQuery(page, pageSize
-                , descending, whereExpression, orderExpression, pageIsZeroBased)
+            result.Data = FindPageQuery(pageIndex, pageSize
+                , descending, whereExpression, orderExpression)
                 .ToList();
 
             if (countTotal)
@@ -73,23 +72,22 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TOrder"></typeparam>
-        /// <param name="page"></param>
+        /// <param name="pageIndex">0-based page index</param>
         /// <param name="pageSize"></param>
         /// <param name="descending"></param>
         /// <param name="whereExpression"></param>
         /// <param name="orderExpression"></param>
         /// <param name="countTotal"></param>
-        /// <param name="pageIsZeroBased">If page number starts from 0, otherwise from 1.</param>
         /// <returns></returns>
-        public virtual async Task<RepositoryResult<TEntity>> SelectPageAsync<TEntity, TOrder>(int page, int pageSize, bool descending
+        public virtual async Task<RepositoryResult<TEntity>> FindPageAsync<TEntity, TOrder>(int pageIndex, int pageSize, bool descending
             , Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, TOrder>> orderExpression
-            , bool countTotal, bool pageIsZeroBased)
+            , bool countTotal)
             where TEntity : class
         {
             var result = new RepositoryResult<TEntity>();
 
-            Task<List<TEntity>> listQuery = SelectPageQuery(page, pageSize
-                , descending, whereExpression, orderExpression, pageIsZeroBased)
+            Task<List<TEntity>> listQuery = FindPageQuery(pageIndex, pageSize
+                , descending, whereExpression, orderExpression)
                 .ToListAsync();
 
             Task<long> countQuery = null;
@@ -114,21 +112,17 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         /// </summary>
         /// <typeparam name="TEntity"></typeparam>
         /// <typeparam name="TOrder"></typeparam>
-        /// <param name="page"></param>
+        /// <param name="pageIndex">0-based page index</param>
         /// <param name="pageSize"></param>
         /// <param name="descending"></param>
         /// <param name="whereExpression"></param>
         /// <param name="orderExpression"></param>
-        /// <param name="pageIsZeroBased">If page number starts from 0, otherwise from 1.</param>
         /// <returns></returns>
-        public virtual IQueryable<TEntity> SelectPageQuery<TEntity, TOrder>(int page, int pageSize, bool descending
-            , Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, TOrder>> orderExpression
-            , bool pageIsZeroBased)
+        public virtual IQueryable<TEntity> FindPageQuery<TEntity, TOrder>(int pageIndex, int pageSize, bool descending
+            , Expression<Func<TEntity, bool>> whereExpression, Expression<Func<TEntity, TOrder>> orderExpression)
             where TEntity : class
         {
-            int skip = pageIsZeroBased
-                ? SqlDataFomatting.ToSkipNumberZeroBased(page, pageSize)
-                : SqlDataFomatting.ToSkipNumberOneBased(page, pageSize);
+            int skip = SqlDataFomatting.ToSkipNumberZeroBased(pageIndex, pageSize);
 
             IQueryable<TEntity> query = Context.Set<TEntity>().AsQueryable();
             if (whereExpression != null)
@@ -140,7 +134,9 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
                 query = query.OrderBy(orderExpression);
 
             if (skip > 0)
+            {
                 query = query.Skip(skip);
+            }
             query = query.Take(pageSize);
 
             return query;
@@ -295,10 +291,10 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         /// <param name="entityList"></param>
         /// <param name="sqlTVPName"></param>
         /// <returns></returns>
-        public virtual MergeCommand<TEntity> MergeTVP<TEntity>(List<TEntity> entityList, string sqlTVPName)
+        public virtual MergeCommand<TEntity> MergeTVP<TEntity>(List<TEntity> entityList, string sqlTVPName, SqlTransaction transaction = null)
             where TEntity : class
         {
-            return new MergeCommand<TEntity>(Context, entityList, sqlTVPName);
+            return new MergeCommand<TEntity>(Context, entityList, sqlTVPTypeName: sqlTVPName, transaction: transaction);
         }
 
 

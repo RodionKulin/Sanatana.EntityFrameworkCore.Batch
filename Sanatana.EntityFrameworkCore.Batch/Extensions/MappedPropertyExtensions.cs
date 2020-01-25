@@ -11,7 +11,10 @@ namespace Sanatana.EntityFrameworkCore.Batch
         public static SqlDbType GetSqlDbType(this MappedProperty mappedProperty)
         {
             string sqlType = mappedProperty.ConfiguredSqlType;
-            sqlType = sqlType.ToLower().Replace("nvarchar(max)", "nvarchar");
+            if (sqlType.ToLower().Contains("nvarchar"))
+            {
+                sqlType = "nvarchar";
+            }
             var sqlDbType = (SqlDbType)Enum.Parse(typeof(SqlDbType), sqlType, true);
             return sqlDbType;
         }

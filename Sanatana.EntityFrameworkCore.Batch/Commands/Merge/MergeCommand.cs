@@ -91,9 +91,16 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
         /// Include properties that are generated on database side, like auto increment field.
         /// Returned values will be set to provided entities properties.
         /// Database generated or computed properties are included by default.
+        /// Not implemented for TVP merge.
         /// </summary>
         public CommandArgs<TEntity> Output { get; protected set; }
-
+        protected bool UseOutputColumns
+        {
+            get
+            {
+                return _useTVP == false && Output.GetSelectedFlat().Count > 0;
+            }
+        }
 
 
         //init
@@ -177,8 +184,8 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
         /// <param name="sqlTVPParameterName"></param>
         /// <param name="transaction"></param>
         public MergeCommand(DbContext context, List<TEntity> entityList
-            , string sqlTVPTypeName, string sqlTVPParameterName = "@Table")
-            : this(context)
+            , string sqlTVPTypeName, string sqlTVPParameterName = "@Table", SqlTransaction transaction = null)
+            : this(context, transaction)
         {
             _entityList = entityList;
             _useTVP = true;
@@ -311,17 +318,38 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
 
             return new SqlParameter[] { tableParam };
         }
-        
+
 
 
         //construct sql command text
         public virtual string ConstructCommand(MergeType mergeType, List<TEntity> entities)
         {
+            if (_useTVP)
+            {
+                throw new InvalidOperationException($"{nameof(ConstructCommand)} can only be called for {nameof(Repository)} {nameof(Repository.Merge)} command, but current is {nameof(Repository.MergeTVP)}.");
+            }
+
+            StringBuilder sqlHeader = ConstructHeadValues(entities);
+            return ConstructCommandWithParamsOrTVP(mergeType, entities);
+        }
+
+        public virtual string ConstructCommandTVP(MergeType mergeType)
+        {
+            if (!_useTVP)
+            {
+                throw new InvalidOperationException($"{nameof(ConstructCommandTVP)} can only be called for {nameof(Repository)} {nameof(Repository.MergeTVP)} command, but current is {nameof(Repository.Merge)}.");
+            }
+
+            return ConstructCommandWithParamsOrTVP(mergeType, null);
+        }
+
+        protected virtual string ConstructCommandWithParamsOrTVP(MergeType mergeType, List<TEntity> entities)
+        {
             _mergeType = mergeType;
             StringBuilder sql = _useTVP
-                ? ConstructHeadTVP(entities)
+                ? ConstructHeadTVP()
                 : ConstructHeadValues(entities);
-
+               
             //on
             if (_mergeType == MergeType.Insert)
             {
@@ -361,7 +389,10 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             }
 
             //output
-            ConstructOutput(sql);
+            if (!_useTVP)
+            {
+                ConstructOutput(sql);
+            }
 
             sql.Append(";");
             return sql.ToString();
@@ -420,7 +451,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             return sql;
         }
 
-        protected virtual StringBuilder ConstructHeadTVP(List<TEntity> entities)
+        protected virtual StringBuilder ConstructHeadTVP()
         {
             StringBuilder sql = new StringBuilder();
             sql.AppendFormat("MERGE INTO {0} AS {1} ", TableName, _targetAlias);
@@ -544,7 +575,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
         protected virtual void ConstructOutput(StringBuilder sql)
         {
             List<MappedProperty> outputProperties = Output.GetSelectedFlat();
-            if (outputProperties.Count == 0)
+            if (!UseOutputColumns)
             {
                 return;
             }
@@ -571,15 +602,14 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             int res = 0;
             foreach (List<TEntity> entitiesBatch in entityBatches)
             {
-                string sql = ConstructCommand(_mergeType, entitiesBatch);
+                string sql = ConstructCommandWithParamsOrTVP(_mergeType, entitiesBatch);
                 SqlParameter[] parameters = _useTVP
                     ? ConstructParameterTVP(entitiesBatch)
                     : ConstructParameterValues(entitiesBatch);
 
-                bool hasOutput = Output.GetSelectedFlat().Count > 0;
-                if (!hasOutput)
+                if (!UseOutputColumns)
                 {
-                    res += _context.Database.ExecuteSqlCommand(sql, parameters);
+                    res += _context.Database.ExecuteSqlRaw(sql, parameters);
                     continue;
                 }
 
@@ -597,15 +627,14 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
             int res = 0;
             foreach (List<TEntity> entitiesBatch in entityBatches)
             {
-                string sql = ConstructCommand(_mergeType, entitiesBatch);
+                string sql = ConstructCommandWithParamsOrTVP(_mergeType, entitiesBatch);
                 SqlParameter[] parameters = _useTVP
                     ? ConstructParameterTVP(entitiesBatch)
                     : ConstructParameterValues(entitiesBatch);
 
-                bool hasOutput = Output.GetSelectedFlat().Count > 0;
-                if (!hasOutput)
+                if (!UseOutputColumns)
                 {
-                    res += await _context.Database.ExecuteSqlCommandAsync(sql, parameters)
+                    res += await _context.Database.ExecuteSqlRawAsync(sql, parameters)
                         .ConfigureAwait(false);
                     continue;
                 }

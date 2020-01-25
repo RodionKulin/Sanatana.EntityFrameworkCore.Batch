@@ -4,6 +4,7 @@ using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
 using System;
 using System.Collections.Generic;
 using System.Data;
+using System.Data.Common;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -76,7 +77,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
             }
             else
             {
-                return _context.Database.ExecuteSqlCommand(command, parameters);
+                return _context.Database.ExecuteSqlRaw(command, parameters);
             }
         }
 
@@ -99,7 +100,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
             }
             else
             {
-                return await _context.Database.ExecuteSqlCommandAsync(command, parameters)
+                return await _context.Database.ExecuteSqlRawAsync(command, parameters)
                     .ConfigureAwait(false);
             }
         }

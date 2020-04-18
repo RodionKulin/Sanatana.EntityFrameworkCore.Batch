@@ -492,38 +492,38 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands.Merge
 
         protected virtual void ConstructUpdateMatched(StringBuilder sql)
         {
-            List<string> stringParts = UpdateMatched.GetSelectedFlat()
+            List<string> updateParts = UpdateMatched.GetSelectedFlat()
                 .Select(c => string.Format("[{0}].[{1}]=[{2}].[{1}]", _targetAlias, c.EfMappedName, _sourceAlias))
                 .ToList();
 
             foreach (Expression item in UpdateMatched.Expressions)
             {
                 string expressionSql = item.ToMSSqlString(_context);
-                stringParts.Add(expressionSql);
+                updateParts.Add(expressionSql);
             }
 
-            if (stringParts.Count > 0)
+            if (updateParts.Count > 0)
             {
-                string update = string.Join(", ", stringParts);
+                string update = string.Join(", ", updateParts);
                 sql.AppendFormat("WHEN MATCHED THEN UPDATE SET {0}", update);
             }
         }
 
         protected virtual void ConstructUpdateNotMatched(StringBuilder sql)
         {
-            List<string> stringParts = UpdateNotMatched.GetSelectedFlat()
+            List<string> updateParts = UpdateNotMatched.GetSelectedFlat()
                 .Select(c => string.Format("[{0}].[{1}]=[{2}].[{1}]", _targetAlias, c.EfMappedName, _sourceAlias))
                 .ToList();
 
             foreach (Expression item in UpdateNotMatched.Expressions)
             {
                 string expressionSql = item.ToMSSqlString(_context);
-                stringParts.Add(expressionSql);
+                updateParts.Add(expressionSql);
             }
 
-            if(stringParts.Count > 0)
+            if(updateParts.Count > 0)
             {
-                string update = string.Join(", ", stringParts);
+                string update = string.Join(", ", updateParts);
                 sql.AppendFormat("WHEN NOT MATCHED THEN UPDATE SET {0}", update);
             }
         }

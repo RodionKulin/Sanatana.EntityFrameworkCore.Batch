@@ -18,6 +18,10 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
         protected List<Expression> _updateExpressions;
 
 
+        //properties
+        public long? Limit { get; set; }
+
+
         //init
         public UpdateCommand(DbContext context, Expression<Func<TEntity, bool>> matchExpression)
         {
@@ -44,6 +48,17 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
                 Left = targetProperty,
                 Right = assignedValue
             });
+            return this;
+        }
+
+        /// <summary>
+        /// Limit number or rows to be updated
+        /// </summary>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        public virtual UpdateCommand<TEntity> SetLimit(long? limit)
+        {
+            Limit = limit;
             return this;
         }
 
@@ -78,8 +93,12 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
             string updateSql = string.Join(", ", assignParts);
             string tableAlias = ExpressionsToMSSql.ALIASES[0];
 
-            string command = string.Format("UPDATE {0} SET {1} FROM {2} AS {0} WHERE {3}"
-                , tableAlias, updateSql, tableName, matchSql);
+            string limit = Limit == null
+                ? string.Empty
+                : $"TOP({Limit.Value}) ";
+            string command = string.Format("UPDATE {0}{1} SET {2} FROM {3} AS {1} WHERE {4}",
+                limit, tableAlias, updateSql, tableName, matchSql);
+          
             return command;
         }
     }

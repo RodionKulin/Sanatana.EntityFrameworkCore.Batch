@@ -319,6 +319,62 @@ namespace Sanatana.EntityFrameworkCore.BatchSpecs.Specs
         }
 
         [TestFixture]
+        public class when_updating_limited_number_of_rows : SpecsFor<Repository>
+           , INeedSampleDatabase
+        {
+            private Guid _commonGuidValue = Guid.NewGuid();
+            private int _entitiesCount = 10;
+            private int _limit = 2;
+            private int _updateChanges;
+            public SampleDbContext SampleDatabase { get; set; }
+
+            protected override void Given()
+            {
+                var entities = new List<SampleEntity>();
+                for (int i = 0; i < _entitiesCount; i++)
+                {
+                    entities.Add(new SampleEntity
+                    {
+                        GuidNullableProperty = null,
+                        DateProperty = DateTime.UtcNow,
+                        GuidProperty = _commonGuidValue
+                    });
+                }
+
+                InsertCommand<SampleEntity> command = SUT.Insert<SampleEntity>();
+                command.Insert.ExcludeProperty(x => x.Id);
+                int changes = command.Execute(entities);
+
+
+                //execute limited Update
+                UpdateCommand<SampleEntity> updateOp = SUT
+                    .UpdateMany<SampleEntity>(x => x.GuidProperty == _commonGuidValue)
+                    .Assign(x => x.IntProperty, x => 5)
+                    .SetLimit(_limit);
+                _updateChanges = updateOp.Execute();
+            }
+
+            [Test]
+            public void then_it_updates_expected_number_of_entities()
+            {
+                _updateChanges.ShouldEqual(_limit);
+            }
+
+            [Test]
+            public void then_it_returns_updated_entities()
+            {
+                SampleEntity[] allEntities = SUT.Context.Set<SampleEntity>()
+                    .Where(x => x.GuidProperty == _commonGuidValue)
+                    .ToArray();
+
+                allEntities.Count(x => x.IntProperty == 5).ShouldEqual(_limit);
+
+                int expectedUnchangedCount = _entitiesCount - _limit;
+                allEntities.Count(x => x.IntProperty != 5).ShouldEqual(expectedUnchangedCount);
+            }
+        }
+
+        [TestFixture]
         public class when_selecting_page : SpecsFor<Repository>
          , INeedSampleDatabase
         {

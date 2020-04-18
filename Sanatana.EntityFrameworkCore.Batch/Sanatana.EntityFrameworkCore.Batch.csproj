@@ -9,9 +9,10 @@
 	  <PackageLicenseUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore.Batch/blob/master/LICENSE</PackageLicenseUrl>
 	  <PackageDescription>EntityFrameworkCore merge, batch insert, update, delete requests for SqlServer</PackageDescription>
 	  <PackageTags>EntityFramework;EntityFrameworkCore;EF;MSSQL;Merge;Batch;Repository</PackageTags>
-    <PackageReleaseNotes></PackageReleaseNotes>
+    <PackageReleaseNotes>Add LIMIT support to Update operation</PackageReleaseNotes>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageRequireLicenseAcceptance>true</PackageRequireLicenseAcceptance>
+    <Description />
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

@@ -100,7 +100,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Expressions
             //method type
             bool isContains = expression.Method.Name == "Contains";
             if (isContains == false)
-                throw new NotImplementedException("Methods other than Contains are not supported in Merge expressions.");
+                throw new NotImplementedException("Methods other than Contains are not supported in SQL expressions.");
 
             //argument
             Expression containsArgExp = expression.Arguments.FirstOrDefault();
@@ -333,9 +333,6 @@ namespace Sanatana.EntityFrameworkCore.Batch.Expressions
                 DateTime time = (DateTime)value;
                 return string.Format("convert(datetime2, '{0}-{1}-{2} {3}', 121)",
                     time.Year, time.Month, time.Day, time.TimeOfDay.ToString());
-
-                //return string.Format("CAST('{0}/{1}/{2} {3}:{4}:{5}' AS DATETIME)",
-                //    time.Day, time.Month, time.Year, time.Hour, time.Minute, time.Second);
             }
 
             //default

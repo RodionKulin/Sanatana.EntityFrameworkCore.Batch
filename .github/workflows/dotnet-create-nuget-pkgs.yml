@@ -38,6 +38,6 @@ jobs:
     - name: Publish all nuget packages
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push nuget/Sanatana.EntityFrameworkCore.Batch.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ../nuget/Sanatana.EntityFrameworkCore.Batch.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
 
     

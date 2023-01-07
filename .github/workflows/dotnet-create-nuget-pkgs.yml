@@ -3,6 +3,7 @@ name: EntityFrameworkCore.Batch nuget push
 on:
   push:
     branches:
+      - '*'  
       - master
 
 jobs:
@@ -16,11 +17,8 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore "Sanatana.EntityFrameworkCore.Batch.sln" 
- 
     - name: Build
-      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.sln" --configuration Release --no-restore
+      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.sln" --configuration Release
 
     - name: Produce nuget pack for EntityFrameworkCore.Batch
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj -o ../nuget -c Release -v n

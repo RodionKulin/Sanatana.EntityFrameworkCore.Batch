@@ -1,4 +1,4 @@
-﻿using Sanatana.EntityFrameworkCore.Batch.Reflection;
+﻿using Sanatana.EntityFrameworkCore.Batch.Internals.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -22,7 +22,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
                 PropertyReflectionOptions.IgnoreIndexer;
 
             Type stringType = typeof(string);
-            List<PropertyInfo> properties = ReflectionUtility.GetProperties<T>(binding, options)
+            List<PropertyInfo> properties = ReflectionService.GetProperties<T>(binding, options)
                 .Where(p => p.PropertyType == stringType || !p.PropertyType.IsClass)
                 .ToList();
 
@@ -75,6 +75,13 @@ namespace Sanatana.EntityFrameworkCore.Batch
             }
 
             return table;
+        }
+
+        public static List<T> ConcatDistinct<T>(this IEnumerable<T> source, IEnumerable<T> other)
+        {
+            return source.Concat(other)
+                .Distinct()
+                .ToList();
         }
     }
 }

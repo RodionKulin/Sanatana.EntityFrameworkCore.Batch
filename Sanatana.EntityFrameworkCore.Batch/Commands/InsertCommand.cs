@@ -1,6 +1,9 @@
-﻿using Microsoft.Data.SqlClient;
-using Microsoft.EntityFrameworkCore;
-using Sanatana.EntityFrameworkCore.Batch.ColumnMapping;
+﻿using Microsoft.EntityFrameworkCore;
+using Sanatana.EntityFrameworkCore.Batch.Internals.PropertyMapping;
+using Sanatana.EntityFrameworkCore.Batch.Internals.Expressions;
+using Sanatana.EntityFrameworkCore.Batch.Internals;
+using Sanatana.EntityFrameworkCore.Batch.Internals.PropertyMapping;
+using Sanatana.EntityFrameworkCore.Batch.Internals.Services;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -11,13 +14,15 @@ using System.Threading.Tasks;
 
 namespace Sanatana.EntityFrameworkCore.Batch.Commands
 {
-    public class InsertCommand<TEntity>
+    public class InsertCommand<TEntity> : IExecutableCommand
         where TEntity : class
     {
         //fields
-        protected DbContext _context;
-        protected MappedPropertyUtility _mappedPropertyUtility;
-        protected SqlTransaction _transaction;
+        protected DbContext _dbContext;
+        protected DbTransaction? _transaction;
+        protected IDbParametersService _dbParametersService;
+        protected PropertyMappingService _propertyMappingService;
+        protected List<TEntity> _entitiesList;
 
 
         //properties
@@ -37,243 +42,83 @@ namespace Sanatana.EntityFrameworkCore.Batch.Commands
 
 
         //init
-        public InsertCommand(DbContext context, SqlTransaction transaction = null)
+        public InsertCommand(IEnumerable<TEntity> entities, DbContext dbContext, IDbParametersService dbParametersService, DbTransaction? transaction = null)
         {
-            _context = context;
+            _entitiesList = entities == null
+                ? throw new ArgumentNullException(nameof(entities))
+                : entities.ToList();
+            _dbContext = dbContext ?? throw new ArgumentNullException(nameof(dbContext));
+            _dbParametersService = dbParametersService ?? throw new ArgumentNullException(nameof(dbContext));
             _transaction = transaction;
 
             Type entityType = typeof(TEntity);
-            MappedPropertyUtility mappedPropertyUtility = new MappedPropertyUtility(context, entityType);
-            List<MappedProperty> properties = mappedPropertyUtility.GetAllEntityProperties();
+            _propertyMappingService = new PropertyMappingService(_dbContext, entityType, dbParametersService);
+            List<MappedProperty> properties = _propertyMappingService.GetAllEntityProperties();
 
-            Insert = new CommandArgs<TEntity>(properties, mappedPropertyUtility)
-            {
-                ExcludeDbGeneratedByDefault = ExcludeOptions.Exclude
-            };
-            Output = new CommandArgs<TEntity>(properties, mappedPropertyUtility)
-            {
-                ExcludeAllByDefault = true,
-                ExcludeDbGeneratedByDefault = ExcludeOptions.Include
-            };
+            Insert = new CommandArgs<TEntity>(properties, _propertyMappingService)
+                .SetIncludeAllByDefault(ColumnSetEnum.DbGenerated);
+            Output = new CommandArgs<TEntity>(properties, _propertyMappingService)
+                .SetExcludeAllByDefault(ColumnSetEnum.DbGenerated);
         }
 
 
-        //methods
-        public virtual int Execute(List<TEntity> entities)
+        //Execute methods
+        public virtual int Execute()
         {
-            if (entities.Count == 0)
+            if (_entitiesList.Count == 0)
             {
                 return 0;
             }
 
-            StringBuilder sqlBuilder = ContructInsertManyCommand();
-            SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
-            string command = sqlBuilder.ToString();
-
-            bool hasOutput = Output.GetSelectedFlat().Count > 0;
-            if (hasOutput)
-            {
-                return ReadOutput(command, parameters, entities);
-            }
-            else
-            {
-                return _context.Database.ExecuteSqlRaw(command, parameters);
-            }
+            string commandText = GetCommandText(_entitiesList, out DbParameter[] parameters);
+            var readCommandExecutor = new ReadCommandExecutor<TEntity>(_dbContext, _transaction, Output.GetSelectedFlat());
+            return readCommandExecutor.Execute(commandText, parameters, _entitiesList);
         }
 
-        public virtual async Task<int> ExecuteAsync(List<TEntity> entities)
+        public virtual async Task<int> ExecuteAsync()
         {
-            if (entities.Count == 0)
+            if (_entitiesList.Count == 0)
             {
                 return 0;
             }
 
-            StringBuilder sqlBuilder = ContructInsertManyCommand();
-            SqlParameter[] parameters = ConstructParametersAndValues(entities, sqlBuilder);
-            string command = sqlBuilder.ToString();
-
-            bool hasOutput = Output.GetSelectedFlat().Count > 0;
-            if (hasOutput)
-            {
-                return await ReadOutputAsync(command, parameters, entities)
-                    .ConfigureAwait(false);
-            }
-            else
-            {
-                return await _context.Database.ExecuteSqlRawAsync(command, parameters)
-                    .ConfigureAwait(false);
-            }
+            string commandText = GetCommandText(_entitiesList, out DbParameter[] parameters);
+            var readCommandExecutor = new ReadCommandExecutor<TEntity>(_dbContext, _transaction, Output.GetSelectedFlat());
+            return await readCommandExecutor.ExecuteAsync(commandText, parameters, _entitiesList);
         }
 
-        protected virtual StringBuilder ContructInsertManyCommand()
+
+        //Combine command text methods
+        protected virtual string GetCommandText(List<TEntity> entities, out DbParameter[] parameters)
         {
-            List<SqlParameter> parameters = new List<SqlParameter>();
-            List<MappedProperty> selectedProperties = Insert.GetSelectedFlat();
-
-            //table name
-            string tableName = _context.GetTableName<TEntity>();
-            StringBuilder sql = new StringBuilder($"INSERT INTO {tableName}");
-
-            //column names
-            List<string> columnNames = selectedProperties.Select(x => $"[{x.EfMappedName}]").ToList();
-            string columnNamesJoined = string.Join(",", columnNames);
-            sql.Append($" ({columnNamesJoined})");
-
-            //Output
-            ConstructOutput(sql);
-
-            //values
-            sql.Append(" VALUES ");
-           
-            return sql;
+            string tableName = GetTableName();
+            string columnNames = _propertyMappingService.CombineColumns(Insert, "insert");
+            string values = _propertyMappingService.CombineInsertValues(Insert, entities, out parameters);
+            string outputPart = _propertyMappingService.CombineOutput(Output);
+            return CombineCommandText(tableName, columnNames, values, outputPart);
         }
 
-        protected virtual SqlParameter[] ConstructParametersAndValues(List<TEntity> entities, StringBuilder sql)
+        protected virtual string GetTableName()
         {
-            List<SqlParameter> sqlParams = new List<SqlParameter>();
-
-            for (int i = 0; i < entities.Count; i++)
-            {
-                sql.Append("(");
-
-                TEntity entity = entities[i];
-                List<MappedProperty> entityProperties = Insert.GetSelectedFlatWithValues(entity);
-
-                for (int p = 0; p < entityProperties.Count; p++)
-                {
-                    if (entityProperties[p].Value == null)
-                    {
-                        sql.Append("NULL");
-                    }
-                    else
-                    {
-                        string paramName = $"@{entityProperties[p].EfMappedName}{i}";
-                        sql.Append(paramName);
-
-                        var sqlParameter = new SqlParameter(paramName, entityProperties[p].Value);
-                        if(entityProperties[p].ConfiguredSqlType != null)
-                        {
-                            sqlParameter.SqlDbType = entityProperties[p].GetSqlDbType();
-                        }
-                        sqlParams.Add(sqlParameter);
-                    }
-
-                    bool isLastProperty = p == entityProperties.Count - 1;
-                    if (isLastProperty == false)
-                    {
-                        sql.Append(",");
-                    }
-                }
-
-                sql.Append(")");
-                bool isLastEntity = i == entities.Count - 1;
-                if (isLastEntity == false)
-                {
-                    sql.Append(",");
-                }
-            }
-
-            return sqlParams.ToArray();
+            string tableName = _dbContext.GetTableName<TEntity>();
+            return _dbParametersService.FormatTableName(tableName);
         }
 
-
-
-        //Output
-        protected virtual void ConstructOutput(StringBuilder sql)
+        protected virtual string CombineCommandText(string tableName, string columns, string values, string outputPart)
         {
-            List<MappedProperty> outputProperties = Output.GetSelectedFlat();
-            if (outputProperties.Count == 0)
-            {
-                return;
-            }
+            outputPart = string.IsNullOrEmpty(outputPart)
+                ? ""
+                : $"OUTPUT {outputPart}";
 
-            sql.Append(" OUTPUT ");
-            for (int i = 0; i < outputProperties.Count; i++)
-            {
-                MappedProperty prop = outputProperties[i];
-                string name = $"INSERTED.{prop.EfMappedName}";
-                sql.Append(name);
-
-                bool isLast = i == outputProperties.Count - 1;
-                if (isLast == false)
-                {
-                    sql.Append(",");
-                }
-            }
+            return @$"
+INSERT INTO {tableName} 
+({columns})
+{outputPart}
+VALUES
+{values}
+";
+            
         }
 
-        protected virtual int ReadOutput(string sql, SqlParameter[] parameters, List<TEntity> entities)
-        {
-            SqlConnection con = (SqlConnection)_context.Database.GetDbConnection();
-            using (SqlCommand cmd = InitCommandWithParameters(sql, con, parameters))
-            {
-                if (con.State != ConnectionState.Open)
-                {
-                    con.Open();
-                }
-                using (SqlDataReader dr = cmd.ExecuteReader())
-                {
-                    return ReadFromDataReader(entities, dr);
-                }
-            }
-        }
-
-        protected virtual async Task<int> ReadOutputAsync(string sql, SqlParameter[] parameters, List<TEntity> entities)
-        {
-            SqlConnection con = (SqlConnection)_context.Database.GetDbConnection();
-            using (SqlCommand cmd = InitCommandWithParameters(sql, con, parameters))
-            {
-                if (con.State != ConnectionState.Open)
-                {
-                    await con.OpenAsync().ConfigureAwait(false);
-                }
-                using (SqlDataReader dr = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
-                {
-                    return ReadFromDataReader(entities, dr);
-                }
-            }
-        }
-
-        protected virtual SqlCommand InitCommandWithParameters(string sql, SqlConnection con, SqlParameter[] parameters)
-        {
-            SqlCommand cmd = _transaction == null
-                ? new SqlCommand(sql, con)
-                : new SqlCommand(sql, con, _transaction);
-            cmd.CommandType = CommandType.Text;
-
-            foreach (SqlParameter param in parameters)
-            {
-                cmd.Parameters.Add(param);
-            }
-
-            return cmd;
-        }
-
-        protected virtual int ReadFromDataReader(List<TEntity> entities, SqlDataReader datareader)
-        {
-            List<MappedProperty> outputProperties = Output.GetSelectedFlat();
-            int entityIndex = 0;
-
-            //will read all if any rows returned 
-            //will return false is no rows returned
-            //will throw exception message if exception produced by SQL
-            while (datareader.Read())
-            {
-                TEntity entity = entities[entityIndex];
-                entityIndex++;
-
-                foreach (MappedProperty prop in outputProperties)
-                {
-                    object value = datareader[prop.EfMappedName];
-                    Type propType = Nullable.GetUnderlyingType(prop.PropertyInfo.PropertyType) ?? prop.PropertyInfo.PropertyType;
-                    value = value == null
-                        ? null
-                        : Convert.ChangeType(value, propType);
-                    prop.PropertyInfo.SetValue(entity, value);
-                }
-            }
-
-            return entityIndex;
-        }
     }
 }

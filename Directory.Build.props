@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <Version>2.0.0</Version>
+    <Authors>Sanatana</Authors>
+    <NeutralLanguage>en</NeutralLanguage>
+    <RepositoryUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore.Batch</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageLicenseUrl>https://github.com/RodionKulin/Sanatana.EntityFrameworkCore.Batch/blob/master/LICENSE</PackageLicenseUrl>
+    <RequireLicenseAcceptance>true</RequireLicenseAcceptance>
+    <Copyright>Copyright ©2018 RodionKulin</Copyright>
+    <ReleaseNotes>Add PostgreSQL support</ReleaseNotes>
+    <Tags>EntityFrameworkCore EF MSSQL PostgreSQL Repository Merge Batch</Tags>
+  </PropertyGroup>
+</Project>

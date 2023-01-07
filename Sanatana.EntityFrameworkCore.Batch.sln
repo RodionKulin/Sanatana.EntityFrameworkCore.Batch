@@ -1,19 +1,28 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29613.14
+# Visual Studio Version 17
+VisualStudioVersion = 17.2.32630.192
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch", "Sanatana.EntityFrameworkCore.Batch\Sanatana.EntityFrameworkCore.Batch.csproj", "{8B750771-1AB6-4650-93D4-EE6F1C4A522D}"
-EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{36AE6A33-A559-41FD-9998-6ABBBAED6452}"
 	ProjectSection(SolutionItems) = preProject
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
-		.travis.yml = .travis.yml
+		Directory.Build.props = Directory.Build.props
+		.github\workflows\dotnet-create-nuget-pkgs.yml = .github\workflows\dotnet-create-nuget-pkgs.yml
 		LICENSE = LICENSE
 	EndProjectSection
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.BatchSpecs", "Sanatana.EntityFrameworkCore.BatchSpecs\Sanatana.EntityFrameworkCore.BatchSpecs.csproj", "{0A2E0895-1C5F-4A3C-BB3F-9A748AE7DE7C}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch.PostgreSql", "Sanatana.EntityFrameworkCore.Batch.PostgreSQL\Sanatana.EntityFrameworkCore.Batch.PostgreSql.csproj", "{17823A3C-2E63-44CC-A71A-1F45F35AEE4E}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch.SqlServer", "Sanatana.EntityFrameworkCore.Batch.SqlServer\Sanatana.EntityFrameworkCore.Batch.SqlServer.csproj", "{947512DF-E09B-4982-8F30-48AFA69FEB06}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch", "Sanatana.EntityFrameworkCore.Batch\Sanatana.EntityFrameworkCore.Batch.csproj", "{783EA067-8788-46D5-BA6E-2A12B3FFB00F}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Specs", "Specs", "{02308BB1-6EAE-4463-B855-6678E7564EA9}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch.SqlServerSpecs", "Sanatana.EntityFrameworkCore.Batch.SqlServerSpecs\Sanatana.EntityFrameworkCore.Batch.SqlServerSpecs.csproj", "{B477CD62-C277-410D-9C09-77C9C274A7F7}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs", "Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs\Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.csproj", "{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,17 +30,33 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8B750771-1AB6-4650-93D4-EE6F1C4A522D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8B750771-1AB6-4650-93D4-EE6F1C4A522D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8B750771-1AB6-4650-93D4-EE6F1C4A522D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8B750771-1AB6-4650-93D4-EE6F1C4A522D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0A2E0895-1C5F-4A3C-BB3F-9A748AE7DE7C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0A2E0895-1C5F-4A3C-BB3F-9A748AE7DE7C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0A2E0895-1C5F-4A3C-BB3F-9A748AE7DE7C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0A2E0895-1C5F-4A3C-BB3F-9A748AE7DE7C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17823A3C-2E63-44CC-A71A-1F45F35AEE4E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17823A3C-2E63-44CC-A71A-1F45F35AEE4E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17823A3C-2E63-44CC-A71A-1F45F35AEE4E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17823A3C-2E63-44CC-A71A-1F45F35AEE4E}.Release|Any CPU.Build.0 = Release|Any CPU
+		{947512DF-E09B-4982-8F30-48AFA69FEB06}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{947512DF-E09B-4982-8F30-48AFA69FEB06}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{947512DF-E09B-4982-8F30-48AFA69FEB06}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{947512DF-E09B-4982-8F30-48AFA69FEB06}.Release|Any CPU.Build.0 = Release|Any CPU
+		{783EA067-8788-46D5-BA6E-2A12B3FFB00F}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{783EA067-8788-46D5-BA6E-2A12B3FFB00F}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{783EA067-8788-46D5-BA6E-2A12B3FFB00F}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{783EA067-8788-46D5-BA6E-2A12B3FFB00F}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B477CD62-C277-410D-9C09-77C9C274A7F7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B477CD62-C277-410D-9C09-77C9C274A7F7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B477CD62-C277-410D-9C09-77C9C274A7F7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B477CD62-C277-410D-9C09-77C9C274A7F7}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{B477CD62-C277-410D-9C09-77C9C274A7F7} = {02308BB1-6EAE-4463-B855-6678E7564EA9}
+		{3BE87181-976A-4F7F-BB68-7DA1EA73DAEF} = {02308BB1-6EAE-4463-B855-6678E7564EA9}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {486F8B7E-78A6-4CB7-A6AE-C386A4B740CB}

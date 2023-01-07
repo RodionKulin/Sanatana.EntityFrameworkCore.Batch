@@ -1,4 +1,4 @@
-﻿using Sanatana.EntityFrameworkCore.Batch.Expressions;
+﻿using Sanatana.EntityFrameworkCore.Batch.Internals.Expressions;
 using System;
 using System.Collections.Generic;
 using System.Linq;

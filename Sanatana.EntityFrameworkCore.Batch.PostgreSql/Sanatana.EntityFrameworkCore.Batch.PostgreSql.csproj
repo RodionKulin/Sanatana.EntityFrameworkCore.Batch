@@ -1,0 +1,21 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <Description>Postgre repository implementation for EntityFrameworkCore with batch Insert, Update, Delete and Merge commands.</Description>
+    <PackageTags>EntityFrameworkCore;EF;MSSQL;SqlServer;PostgreSQL;Repository;Merge;Batch;</PackageTags>
+    <PackageRequireLicenseAcceptance>True</PackageRequireLicenseAcceptance>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="6.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Sanatana.EntityFrameworkCore.Batch\Sanatana.EntityFrameworkCore.Batch.csproj" />
+  </ItemGroup>
+
+</Project>

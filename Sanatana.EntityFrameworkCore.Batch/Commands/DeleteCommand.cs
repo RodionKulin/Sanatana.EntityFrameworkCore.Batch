@@ -1,56 +1,92 @@
 ﻿using Microsoft.EntityFrameworkCore;
-using Sanatana.EntityFrameworkCore.Batch.Expressions;
+using Sanatana.EntityFrameworkCore.Batch.Internals.Expressions;
+using Sanatana.EntityFrameworkCore.Batch.Internals;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
+using Sanatana.EntityFrameworkCore.Batch.Internals.PropertyMapping;
 
 namespace Sanatana.EntityFrameworkCore.Batch.Commands
 {
-    public class DeleteCommand<TEntity>
+    public class DeleteCommand<TEntity> : IExecutableCommand
         where TEntity : class
     {
         //fields
-        protected DbContext _context;
+        protected DbContext _dbContext;
+        protected IDbParametersService _dbParametersService;
+        protected Expression<Func<TEntity, bool>>? _whereExpression;
+        protected PropertyMappingService _propertyMappingService;
 
 
         //init
-        public DeleteCommand(DbContext context)
+        public DeleteCommand(DbContext dbContext, IDbParametersService dbParametersService)
         {
-            _context = context;
+            _dbContext = dbContext;
+            _dbParametersService = dbParametersService;
+
+            Type entityType = typeof(TEntity);
+            _propertyMappingService = new PropertyMappingService(_dbContext, entityType, dbParametersService);
         }
 
 
-        //methods
-        public virtual int Execute(Expression<Func<TEntity, bool>> matchExpression)
+        //Configure methods
+        /// <summary>
+        /// Expression to select rows to be effected by DELETE command.
+        /// </summary>
+        /// <param name="whereExpression"></param>
+        /// <returns></returns>
+        public virtual DeleteCommand<TEntity> SetWhere(Expression<Func<TEntity, bool>> whereExpression)
         {
-            string command = ContructDeleteCommand(matchExpression);
-            int changes = _context.Database.ExecuteSqlRaw(command);
-
-            return changes;
+            _whereExpression = whereExpression;
+            return this;
         }
 
-        public virtual async Task<int> ExecuteAsync(Expression<Func<TEntity, bool>> matchExpression)
-        {
-            string command = ContructDeleteCommand(matchExpression);
-            int changes = await _context.Database.ExecuteSqlRawAsync(command).ConfigureAwait(false);
 
-            return changes;
+        //Execute methods
+        public virtual int Execute()
+        {
+            string commandText = ConstructDeleteCommand();
+            return _dbContext.Database.ExecuteSqlRaw(commandText);
         }
 
-        protected virtual string ContructDeleteCommand(
-            Expression<Func<TEntity, bool>> matchExpression)
+        public virtual Task<int> ExecuteAsync()
         {
-            string tableName = _context.GetTableName<TEntity>();
-            string tableAlias = ExpressionsToMSSql.ALIASES[0];
-            string matchSql = matchExpression.ToMSSqlString(_context);
-
-            string command = string.Format("DELETE {0} FROM {1} AS {0} WHERE {2}"
-                , tableAlias, tableName, matchSql);
-
-            return command;
+            string commandText = ConstructDeleteCommand();
+            return _dbContext.Database.ExecuteSqlRawAsync(commandText);
         }
+
+
+        //Combine command text methods
+        protected virtual string ConstructDeleteCommand()
+        {
+            if (_whereExpression == null)
+            {
+                throw new ArgumentNullException($"Provided {nameof(_whereExpression)} is null. Use {nameof(SetWhere)} method to set.");
+            }
+
+            string tableName = GetTableName();
+
+            string matchPart = _propertyMappingService.CombineWhere(_whereExpression, useLambdaAlias: false);
+          
+            return CombineCommandText(tableName, matchPart);
+        }
+
+        protected virtual string GetTableName()
+        {
+            string tableName = _dbContext.GetTableName<TEntity>();
+            return _dbParametersService.FormatTableName(tableName);
+        }
+
+        protected virtual string CombineCommandText(string tableName, string matchPart)
+        {
+            return @$"
+DELETE FROM {tableName}
+WHERE {matchPart}"
+;
+        }
+
     }
 }

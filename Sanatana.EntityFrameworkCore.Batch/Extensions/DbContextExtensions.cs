@@ -2,7 +2,7 @@
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
-using Sanatana.EntityFrameworkCore.Batch.Reflection;
+using Sanatana.EntityFrameworkCore.Batch.Internals.Reflection;
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -26,10 +26,10 @@ namespace Sanatana.EntityFrameworkCore.Batch
         public static string GetTableName<T>(this DbContext context)
             where T : class
         {
-            string entityName = TypeExtensions.DisplayName(typeof(T));
-            IEntityType rootEntityType = context.Model.FindEntityType(entityName);
+            IEntityType rootEntityType = context.Model.FindEntityType(typeof(T));
             if(rootEntityType == null)
             {
+                string entityName = typeof(T).FullName;
                 throw new KeyNotFoundException($"Entity type {entityName} is not found in DbContext configuration.");
             }
 
@@ -54,10 +54,10 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <returns></returns>
         public static string GetColumnName<T>(this DbContext context, Expression<Func<T, object>> expression)
         {
-            List<string> propertyNamePath = ReflectionUtility.GetMemberNamePath(expression);
+            List<string> propertyNamePath = ReflectionService.GetMemberNamePath(expression);
 
             Type rootEntityType = typeof(T);
-            string propertyName = ReflectionUtility.ConcatenateEfPropertyName(propertyNamePath);
+            string propertyName = ReflectionService.ConcatenateEfPropertyName(propertyNamePath);
             return GetColumnName(context, rootEntityType, propertyName);
         }
 
@@ -71,8 +71,8 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <returns></returns>
         internal static string GetColumnName(this DbContext context, Type rootEntityType, MemberExpression expression)
         {
-            List<string> propertyNamePath = ReflectionUtility.GetMemberPath(expression);
-            string propertyName = ReflectionUtility.ConcatenateEfPropertyName(propertyNamePath);
+            List<string> propertyNamePath = ReflectionService.GetMemberPath(expression);
+            string propertyName = ReflectionService.ConcatenateEfPropertyName(propertyNamePath);
             return GetColumnName(context, rootEntityType, propertyName);
         }
 
@@ -92,14 +92,13 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <summary>
         /// Get list of properties that configured to be DatabaseGenerated with option DatabaseGeneratedOption.Identity or DatabaseGeneratedOption.Computed
         /// </summary>
-        /// <typeparam name="T"></typeparam>
+        /// <typeparam name="TEntity"></typeparam>
         /// <param name="context"></param>
         /// <returns></returns>
-        public static List<string> GetDatabaseGeneratedProperties<T>(this DbContext context)
-            where T : class
+        public static string[] GetDatabaseGeneratedColumns<TEntity>(this DbContext context)
+            where TEntity : class
         {
-            Type typeName = typeof(T);
-            return GetDatabaseGeneratedProperties(context, typeName);
+            return GetDatabaseGeneratedColumns(context, typeof(TEntity));
         }
 
         /// <summary>
@@ -108,18 +107,37 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <param name="context"></param>
         /// <param name="rootEntityType"></param>
         /// <returns></returns>
-        public static List<string> GetDatabaseGeneratedProperties(this DbContext context, Type rootEntityType)
+        public static string[] GetDatabaseGeneratedColumns(this DbContext context, Type rootEntityType)
         {
-            string entityName = TypeExtensions.DisplayName(rootEntityType);
-            IEntityType rootEntity = context.Model.FindEntityType(entityName);
+            IEntityType rootEntity = context.Model.FindEntityType(rootEntityType);
 
-            List<string> keyNames = rootEntity.GetProperties()
+            return rootEntity.GetProperties()
                 .Where(x => x.ValueGenerated == ValueGenerated.OnAdd
                     || x.ValueGenerated == ValueGenerated.OnAddOrUpdate)
                 .Select(property => property.GetColumnName())
-                .ToList();
+                .ToArray();
+        }
 
-            return keyNames;
+        public static string[] GetPrimaryKeyColumns<TEntity>(this DbContext context)
+        {
+            return GetPrimaryKeyColumns(context, typeof(TEntity));
+        }
+
+        public static string[] GetPrimaryKeyColumns(this DbContext context, Type rootEntityType)
+        {
+            IEntityType rootEntity = context.Model.FindEntityType(rootEntityType);
+
+            IKey? primaryKey = rootEntity.GetKeys()
+                .Where(x => x.IsPrimaryKey())
+                .FirstOrDefault();
+            if (primaryKey == null)
+            {
+                throw new NotSupportedException($"Primary key not found for entity {rootEntity.FullName}.");
+            }
+
+            return primaryKey.Properties
+                .Select(property => property.GetColumnName())
+                .ToArray();
         }
 
         /// <summary>
@@ -131,15 +149,13 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <returns></returns>
         public static IProperty GetPropertyMapping(this DbContext context, Type rootEntityType, string propertyName)
         {
-            string entityName = TypeExtensions.DisplayName(rootEntityType);
-            IEntityType rootEntity = context.Model.FindEntityType(entityName);
-
+            IEntityType rootEntity = context.Model.FindEntityType(rootEntityType);
             if (rootEntity == null)
             {
                 throw new KeyNotFoundException($"Entity {rootEntityType.FullName} is not found in EntityFramework configuration.");
             }
 
-            List<string> propertyNamePath = ReflectionUtility.SplitEfPropertyName(propertyName);
+            List<string> propertyNamePath = ReflectionService.SplitEfPropertyName(propertyName);
             IProperty property = null;
 
             if (propertyNamePath.Count == 1)
@@ -168,6 +184,13 @@ namespace Sanatana.EntityFrameworkCore.Batch
             return property;
         }
 
+        /// <summary>
+        /// Get navigation property
+        /// </summary>
+        /// <param name="context"></param>
+        /// <param name="rootEntity"></param>
+        /// <param name="navigationProperty"></param>
+        /// <returns></returns>
         public static IEntityType GetOwnedProperty(this DbContext context, 
             IEntityType rootEntity, string navigationProperty)
         {
@@ -181,7 +204,6 @@ namespace Sanatana.EntityFrameworkCore.Batch
 
             return ownedEntity;
         }
-
 
         /// <summary>
         /// Get list of all mapped properties for a given entity.
@@ -202,8 +224,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// <returns></returns>
         public static List<string> GetAllMappedProperties(this DbContext context, Type rootEntityType)
         {
-            string entityName = TypeExtensions.DisplayName(rootEntityType);
-            IEntityType rootEntity = context.Model.FindEntityType(entityName);
+            IEntityType rootEntity = context.Model.FindEntityType(rootEntityType);
             IEnumerable<IProperty> entityProperties = rootEntity.GetProperties();
 
             List<string> keyNames = entityProperties

@@ -3,7 +3,6 @@ name: EntityFrameworkCore.Batch nuget push
 on:
   push:
     branches:
-      - '*'  
       - master
 
 jobs:

@@ -16,22 +16,27 @@ jobs:
       with:
         dotnet-version: 7.0.x
 
-    - name: Restore dependencies
-      run: dotnet restore "Sanatana.EntityFrameworkCore.Batch.sln" 
- 
-    - name: Build
-      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.sln" --configuration Release --no-restore
+    - name: Build EntityFrameworkCore.Batch
+      run: dotnet build "Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj" --configuration Release
+      
+    - name: Build EntityFrameworkCore.Batch.PostgreSql
+      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.PostgreSql/Sanatana.EntityFrameworkCore.Batch.PostgreSql.csproj" --configuration Release
 
-    - name: Produce nuget pack for EntityFrameworkCore.Batch
+    - name: Build EntityFrameworkCore.Batch.SqlServer
+      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.SqlServer/Sanatana.EntityFrameworkCore.Batch.SqlServer.csproj" --configuration Release
+
+    - name: Nuget pack for EntityFrameworkCore.Batch
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj -o ../nuget -c Release -v n
 
-    - name: Produce nuget pack for EntityFrameworkCore.Batch.PostgreSql
+    - name: Nuget pack for EntityFrameworkCore.Batch.PostgreSql
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch.PostgreSql/Sanatana.EntityFrameworkCore.Batch.PostgreSql.csproj -o ../nuget -c Release -v n
  
-    - name: Produce nuget pack for EntityFrameworkCore.Batch.SqlServer
+    - name: Nuget pack for EntityFrameworkCore.Batch.SqlServer
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch.SqlServer/Sanatana.EntityFrameworkCore.Batch.SqlServer.csproj -o ../nuget -c Release -v n
  
     - name: Publish all nuget packages
       env:
         NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push nuget/Sanatana.EntityFrameworkCore.Batch.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+      run: dotnet nuget push ../nuget/Sanatana.EntityFrameworkCore.Batch.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+
+    

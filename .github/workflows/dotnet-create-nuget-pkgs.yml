@@ -18,6 +18,7 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Build
+      working-directory: ./
       run: dotnet build --configuration Release
 
     - name: Produce nuget pack for EntityFrameworkCore.Batch

@@ -18,7 +18,7 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Build
-      run: dotnet build "Sanatana.EntityFrameworkCore.Batch.sln" --configuration Release
+      run: dotnet build --configuration Release
 
     - name: Produce nuget pack for EntityFrameworkCore.Batch
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj -o ../nuget -c Release -v n

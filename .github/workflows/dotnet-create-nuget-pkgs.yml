@@ -18,8 +18,7 @@ jobs:
         dotnet-version: 7.0.x
 
     - name: Build
-      working-directory: ../
-      run: dotnet build --configuration Release
+      run: dotnet build "Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj" --configuration Release
 
     - name: Produce nuget pack for EntityFrameworkCore.Batch
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj -o ../nuget -c Release -v n
@@ -30,7 +29,4 @@ jobs:
     - name: Produce nuget pack for EntityFrameworkCore.Batch.SqlServer
       run: dotnet pack Sanatana.EntityFrameworkCore.Batch.SqlServer/Sanatana.EntityFrameworkCore.Batch.SqlServer.csproj -o ../nuget -c Release -v n
  
-    - name: Publish all nuget packages
-      env:
-        NUGET_API_KEY: ${{ secrets.NUGET_API_KEY }}
-      run: dotnet nuget push nuget/Sanatana.EntityFrameworkCore.Batch.*.nupkg --force-english-output -k $NUGET_API_KEY --source https://api.nuget.org/v3/index.json
+    

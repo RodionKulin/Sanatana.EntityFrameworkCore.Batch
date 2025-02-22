@@ -9,12 +9,12 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Setup .NET
-      uses: actions/setup-dotnet@v3.0.3
+      uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: 7.0.x
+        dotnet-version: 9.0.x
 
     - name: Build EntityFrameworkCore.Batch
       run: dotnet build "Sanatana.EntityFrameworkCore.Batch/Sanatana.EntityFrameworkCore.Batch.csproj" --configuration Release

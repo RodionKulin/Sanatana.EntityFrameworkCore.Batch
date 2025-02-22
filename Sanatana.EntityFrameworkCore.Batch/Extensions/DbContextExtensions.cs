@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.EntityFrameworkCore.Metadata.Conventions;
@@ -50,7 +51,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
         /// </summary>
         /// <typeparam name="T">Entity type</typeparam>
         /// <param name="context">DbContext</param>
-        /// <param name="property">Property of entity that is used to get column name</param>
+        /// <param name="expression">Property of entity that is used to get column name</param>
         /// <returns></returns>
         public static string GetColumnName<T>(this DbContext context, Expression<Func<T, object>> expression)
         {
@@ -86,7 +87,22 @@ namespace Sanatana.EntityFrameworkCore.Batch
         public static string GetColumnName(this DbContext context, Type rootEntityType, string propertyName)
         {
             IProperty property = GetPropertyMapping(context, rootEntityType, propertyName);
-            return property.GetColumnName();
+            
+            var storeObjectId = StoreObjectIdentifier.Create(
+              property.DeclaringEntityType, StoreObjectType.Table);
+            return property.GetColumnName(storeObjectId.GetValueOrDefault());
+        }
+
+        /// <summary>
+        /// Get name of the column used by EF.
+        /// </summary>
+        /// <param name="property">Property of entity.s.</param>
+        /// <returns></returns>
+        public static string GetStoreObjectIdColumnName(this IProperty property)
+        {
+            var storeObjectId = StoreObjectIdentifier.Create(
+              property.DeclaringEntityType, StoreObjectType.Table);
+            return property.GetColumnName(storeObjectId.GetValueOrDefault());
         }
 
         /// <summary>
@@ -114,7 +130,7 @@ namespace Sanatana.EntityFrameworkCore.Batch
             return rootEntity.GetProperties()
                 .Where(x => x.ValueGenerated == ValueGenerated.OnAdd
                     || x.ValueGenerated == ValueGenerated.OnAddOrUpdate)
-                .Select(property => property.GetColumnName())
+                .Select(property => property.GetStoreObjectIdColumnName())
                 .ToArray();
         }
 
@@ -132,11 +148,11 @@ namespace Sanatana.EntityFrameworkCore.Batch
                 .FirstOrDefault();
             if (primaryKey == null)
             {
-                throw new NotSupportedException($"Primary key not found for entity {rootEntity.FullName}.");
+                throw new NotSupportedException($"Primary key not found for entity {rootEntity.Name}.");
             }
 
             return primaryKey.Properties
-                .Select(property => property.GetColumnName())
+                .Select(property => property.GetStoreObjectIdColumnName())
                 .ToArray();
         }
 
@@ -194,15 +210,8 @@ namespace Sanatana.EntityFrameworkCore.Batch
         public static IEntityType GetOwnedProperty(this DbContext context, 
             IEntityType rootEntity, string navigationProperty)
         {
-            INavigation navigationProp = rootEntity
-                .FindNavigation(navigationProperty);
-
-            IEntityType ownedEntity = context.Model.GetEntityTypes()
-                .FirstOrDefault(
-                    x => x.ClrType == navigationProp.ClrType
-                    && x.IsOwned());
-
-            return ownedEntity;
+            INavigation? navigationProp = rootEntity.FindNavigation(navigationProperty);
+            return navigationProp.TargetEntityType;
         }
 
         /// <summary>

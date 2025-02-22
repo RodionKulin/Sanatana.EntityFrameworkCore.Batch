@@ -13,6 +13,9 @@ using Microsoft.EntityFrameworkCore.Infrastructure;
 using System.Reflection;
 using Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.Samples;
 using Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.Samples.Entities;
+using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
 
 namespace Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.Specs
 {

@@ -55,6 +55,16 @@ namespace Sanatana.EntityFrameworkCore.Batch.Repositories
         }
 
 
+        //count methods
+        public virtual Task<long> Count<TEntity>(Expression<Func<TEntity, bool>> whereExpression)
+            where TEntity : class
+        {
+            return DbContext.Set<TEntity>()
+                .Where(whereExpression)
+                .LongCountAsync();
+        }
+
+
         //select methods
         /// <summary>
         /// Select first row matching whereExpression predicate.

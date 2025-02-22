@@ -111,7 +111,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Internals.PropertyMapping
                 {
                     PropertyInfo = supportedProp,
                     PocoPropertyName = efDefaultName,
-                    DbColumnName = property.GetColumnName(),
+                    DbColumnName = property.GetStoreObjectIdColumnName(),
                     ConfiguredSqlType = property.GetColumnType()
                 });
             }

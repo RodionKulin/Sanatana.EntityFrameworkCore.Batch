@@ -42,7 +42,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.Samples
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
             IConfigurationRoot config = new ConfigurationBuilder().AddJsonFile("appsettings.json").Build();
-            string connectionString = config.GetConnectionString("DefaultConnection");
+            string? connectionString = config.GetConnectionString("DefaultConnection");
 
             optionsBuilder
                 .UseNpgsql(connectionString, opt => opt.CommandTimeout(30))
@@ -69,10 +69,11 @@ namespace Sanatana.EntityFrameworkCore.Batch.PostgreSqlSpecs.Samples
             modelBuilder.Entity<SampleEntity>().Property(x => x.IntProperty).HasColumnName(SAMPLE_ID_COLUMN_NAME);
             modelBuilder.Entity<SampleEntity>().ToTable(SAMPLE_TABLE_NAME, SAMPLE_TABLE_SCHEMA);
 
-            modelBuilder.Entity<ParentEntity>().OwnsOne(s => s.Embedded, b =>
-            {
-                b.Property(x => x.Address).HasColumnName(COMPLEX_TYPE_COLUMN_NAME);
-            });
+            modelBuilder.Entity<ParentEntity>()
+                .OwnsOne(s => s.Embedded, b =>
+                {
+                    b.Property(x => x.Address).HasColumnName(COMPLEX_TYPE_COLUMN_NAME);
+                });
 
             modelBuilder.Entity<OneToManyEntity>();
             modelBuilder.Entity<ManyToOneEntity>()

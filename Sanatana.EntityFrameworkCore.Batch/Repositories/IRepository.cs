@@ -10,9 +10,7 @@ namespace Sanatana.EntityFrameworkCore.Batch.Repositories
     {
         IDbParametersService DbParametersService { get; }
         DbContext DbContext { get; }
-        int DeleteMany<TEntity>(Expression<Func<TEntity, bool>> whereExpression) where TEntity : class;
-        int DeleteOne(object entity);
-        int DeleteOne<TEntity>(TEntity entity) where TEntity : class;
+        
         int InsertMany<TEntity>(IEnumerable<TEntity> entities, DbTransaction? transaction = null) where TEntity : class;
         InsertCommand<TEntity> InsertManyCommand<TEntity>(IEnumerable<TEntity> entities, DbTransaction? transaction = null) where TEntity : class;
         void InsertOne<TEntity>(TEntity item) where TEntity : class;
@@ -26,5 +24,11 @@ namespace Sanatana.EntityFrameworkCore.Batch.Repositories
         UpdateCommand<TEntity> UpdateMany<TEntity>(DbTransaction? transaction = null) where TEntity : class;
         int UpdateOne<TEntity>(TEntity entity) where TEntity : class;
         int UpdateOne<TEntity>(TEntity entity, params Expression<Func<TEntity, object>>[] properties) where TEntity : class;
+
+
+        int DeleteMany<TEntity>(Expression<Func<TEntity, bool>> whereExpression) where TEntity : class;
+        int DeleteOne(object entity);
+        int DeleteOne<TEntity>(TEntity entity) where TEntity : class;
+
     }
 }

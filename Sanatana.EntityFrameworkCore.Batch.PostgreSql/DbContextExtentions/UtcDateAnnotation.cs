@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -21,7 +22,6 @@ namespace Sanatana.EntityFrameworkCore.Batch.PostgreSql.DbContextExtentions
         private static readonly ValueConverter<DateTime, DateTime> UtcConverter = new ValueConverter<DateTime, DateTime>(
             convertTo => DateTime.SpecifyKind(convertTo, DateTimeKind.Utc), convertFrom => convertFrom);
 
-
         //extension methods
         public static PropertyBuilder<TProperty> IsUtc<TProperty>(
             this PropertyBuilder<TProperty> builder, bool isUtc = true)
@@ -32,13 +32,6 @@ namespace Sanatana.EntityFrameworkCore.Batch.PostgreSql.DbContextExtentions
         public static bool IsUtc(this IMutableProperty property)
         {
             if (property == null || property.PropertyInfo == null)
-            {
-                return true;
-            }
-
-            object[] attributes = property.PropertyInfo.GetCustomAttributes(typeof(IsUtcAttribute), true);
-            IsUtcAttribute attribute = (IsUtcAttribute)attributes.FirstOrDefault();
-            if (attribute != null && attribute.IsUtc)
             {
                 return true;
             }

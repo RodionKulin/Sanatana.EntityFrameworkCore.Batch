@@ -191,6 +191,13 @@ namespace Sanatana.EntityFrameworkCore.Batch.Internals.PropertyMapping
         {
             foreach (MappedProperty property in properties)
             {
+                if (entity == null)
+                {
+                    // entity can be null if there are no ChildProperties, calling GetValues(property.ChildProperties, property.Value);
+                    property.Value = null;
+                    continue;
+                }
+
                 property.Value = property.PropertyInfo.GetValue(entity);
                 if (property.PropertyInfo.PropertyType.IsEnum)
                 {
